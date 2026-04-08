@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Billetera Guardian Intelligence PRO</title>
+  <title>Billetera Guardian PRO - Fixed</title>
   <script src="https://jsdelivr.net"></script>
   <script src="https://cloudflare.com"></script>
   <style>
@@ -12,43 +12,43 @@
     .container { max-width: 1400px; margin: 0 auto; }
     .dashboard-top { display: grid; grid-template-columns: 1fr 350px; gap: 20px; margin-bottom: 20px; }
     .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
-    .stat-card { background: var(--card); padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); text-align: center; border-bottom: 4px solid #ddd; transition: 0.3s; }
+    .stat-card { background: var(--card); padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); text-align: center; border-bottom: 4px solid #ddd; border-top: 4px solid transparent; }
     .stat-val { font-size: 20px; font-weight: bold; }
-    .chart-box { background: var(--card); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); position: relative; min-height: 220px; }
+    .chart-box { background: var(--card); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); position: relative; display: flex; align-items: center; justify-content: center; min-height: 250px; }
     .config-panel { background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: flex; justify-content: center; gap: 20px; border: 1px solid #eee; font-size: 13px; }
-    .config-panel input { width: 80px; padding: 5px; border-radius: 5px; border: 1px solid #ddd; font-weight: bold; color: var(--accent); }
+    .config-panel input { width: 80px; padding: 5px; border-radius: 5px; border: 1px solid #ddd; font-weight: bold; }
     .manual-entry { background: var(--card); padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px dashed var(--accent); display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; justify-content: center; }
     .manual-entry input, .manual-entry select { padding: 8px; border: 1px solid #eee; border-radius: 8px; outline: none; }
     .btn-add { background: var(--accent); color: white; border: none; padding: 8px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
     .main-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
-    .column { background: var(--card); border-radius: 15px; overflow: hidden; height: 500px; display: flex; flex-direction: column; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 2px solid transparent; transition: 0.3s; }
+    .column { background: var(--card); border-radius: 15px; overflow: hidden; height: 500px; display: flex; flex-direction: column; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 2px solid transparent; }
     .col-header { padding: 12px; font-weight: bold; text-align: center; color: white; text-transform: uppercase; font-size: 11px; }
     .scroll-area { overflow-y: auto; flex-grow: 1; padding: 5px; }
     .item-row { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #fafafa; font-size: 12px; align-items: center; }
-    .delete-x { color: #ddd; cursor: pointer; margin-left: 10px; font-weight: bold; font-size: 14px; }
+    .delete-x { color: #ddd; cursor: pointer; margin-left: 10px; font-weight: bold; }
     @media (max-width: 1100px) { .main-grid { grid-template-columns: 1fr 1fr; } .dashboard-top { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h2 style="text-align:center; color: var(--accent); font-weight: 800; margin-bottom: 25px;">Billetera Guardian Intelligence PRO</h2>
+  <h2 style="text-align:center; color: var(--accent); font-weight: 800; margin-bottom: 20px;">Billetera Guardian Intelligence PRO</h2>
 
   <div class="config-panel">
-    <div>Límite Suscripciones: $ <input type="number" id="limit-s" value="100" oninput="ui()"></div>
-    <div>Límite Hogar: $ <input type="number" id="limit-h" value="1500" oninput="ui()"></div>
+    <div>Límite Suscripciones: $ <input type="number" id="limit-s" value="100" onchange="ui()"></div>
+    <div>Límite Hogar: $ <input type="number" id="limit-h" value="1500" onchange="ui()"></div>
   </div>
 
   <div class="dashboard-top">
     <div class="stats-grid">
-      <div id="card-in" class="stat-card" style="border-color: var(--income)"><div>Ingresos</div><div id="ti" class="stat-val">$0.00</div></div>
-      <div id="card-house" class="stat-card" style="border-color: var(--house)"><div>Hogar</div><div id="th" class="stat-val">$0.00</div></div>
-      <div id="card-subs" class="stat-card" style="border-color: var(--subs)"><div>Suscripciones</div><div id="ts" class="stat-val">$0.00</div></div>
-      <div id="card-out" class="stat-card" style="border-color: var(--expense)"><div>Otros</div><div id="te" class="stat-val">$0.00</div></div>
+      <div id="stat-in" class="stat-card" style="border-color: var(--income)"><div>Ingresos</div><div id="ti" class="stat-val">$0.00</div></div>
+      <div id="stat-house" class="stat-card" style="border-color: var(--house)"><div>Hogar</div><div id="th" class="stat-val">$0.00</div></div>
+      <div id="stat-subs" class="stat-card" style="border-color: var(--subs)"><div>Suscripciones</div><div id="ts" class="stat-val">$0.00</div></div>
+      <div id="stat-out" class="stat-card" style="border-color: var(--expense)"><div>Otros</div><div id="te" class="stat-val">$0.00</div></div>
     </div>
     <div class="chart-box">
-      <canvas id="myChart"></canvas>
-      <div id="chart-percent" style="position:absolute; top:55%; left:50%; transform:translate(-50%,-50%); font-weight:bold; font-size:22px;">0%</div>
+      <canvas id="myChart" width="220" height="220"></canvas>
+      <div id="chart-percent" style="position:absolute; font-weight:800; font-size:28px; color:#555;">0%</div>
     </div>
   </div>
 
@@ -56,19 +56,19 @@
     <input type="text" id="m-desc" placeholder="Descripción">
     <input type="number" id="m-amt" placeholder="Monto">
     <select id="m-type">
+      <option value="INGRESO">💰 Ingreso</option>
       <option value="HOGAR">🏠 Hogar</option>
       <option value="SUBS">📺 Suscripción</option>
-      <option value="INGRESO">💰 Ingreso</option>
       <option value="VARIO">🛍️ Otros</option>
     </select>
     <button class="btn-add" onclick="addManual()">+ Añadir</button>
   </div>
 
-  <div style="text-align:center; margin-bottom: 30px;">
+  <div style="text-align:center; margin-bottom: 25px;">
     <label style="background:var(--accent); color:white; padding: 15px 40px; border-radius: 30px; font-weight:bold; cursor:pointer; box-shadow: 0 4px 15px rgba(177,156,217,0.3)">
       ➕ SUBIR EXCEL O CSV <input type="file" id="fIn" style="display:none">
     </label>
-    <button onclick="resetMonth()" style="background:none; border:none; color:var(--alert); cursor:pointer; margin-left: 20px; font-size: 11px; font-weight: bold;">Reiniciar Todo</button>
+    <button onclick="resetAll()" style="background:none; border:none; color:gray; cursor:pointer; font-size:11px; margin-left:15px;">Borrar Todo</button>
   </div>
 
   <div class="main-grid">
@@ -80,51 +80,51 @@
 </div>
 
 <script>
-  let db = JSON.parse(localStorage.getItem('wallet_math_v107')) || [];
+  let db = JSON.parse(localStorage.getItem('wallet_v_final_110')) || [];
   let myChart = null;
-
-  // Cargar límites guardados
-  document.getElementById('limit-s').value = localStorage.getItem('limit-s') || 100;
-  document.getElementById('limit-h').value = localStorage.getItem('limit-h') || 1500;
 
   function addManual() {
     const d = document.getElementById('m-desc').value, a = parseFloat(document.getElementById('m-amt').value), t = document.getElementById('m-type').value;
     if(d && !isNaN(a)) {
-      db.push({ date: new Date().toLocaleDateString(), desc: d, amount: t === "INGRESO" ? a : -Math.abs(a), type: t });
+      db.push({ date: new Date().toLocaleDateString(), desc: d, amount: t === "INGRESO" ? Math.abs(a) : -Math.abs(a), type: t });
       ui();
       document.getElementById('m-desc').value = ''; document.getElementById('m-amt').value = '';
     }
   }
 
-  function resetMonth() { if(confirm("¿Borrar todo?")) { db = []; ui(); } }
   function deleteOne(i) { db.splice(i, 1); ui(); }
+  function resetAll() { if(confirm("¿Borrar todo?")) { db = []; ui(); } }
 
   document.getElementById('fIn').addEventListener('change', function(e) {
-    const file = e.target.files;
     const reader = new FileReader();
     reader.onload = function(evt) {
-      const data = new Uint8Array(evt.target.result);
-      const workbook = XLSX.read(data, {type: 'array'});
-      const sheet = workbook.Sheets[workbook.SheetNames];
-      const rows = XLSX.utils.sheet_to_json(sheet);
-      rows.forEach(row => {
-        const keys = Object.keys(row);
-        const iD = keys.find(k => k.toLowerCase().includes('date') || k.toLowerCase().includes('fecha'));
-        const iS = keys.find(k => k.toLowerCase().includes('desc') || k.toLowerCase().includes('name'));
-        const iA = keys.find(k => k.toLowerCase().includes('amount') || k.toLowerCase().includes('monto'));
-        let a = parseFloat(String(row[iA] || 0).replace(/[$\s,]/g, ''));
-        if(!isNaN(a) && a !== 0) {
-          let d = row[iS] || 'Transacción', type = a >= 0 ? "INGRESO" : "VARIO";
-          const lowD = String(d).toLowerCase();
-          const subs = ['netflix','spotify','disney','apple','icloud','amazon','gym','canva','hbo','klarna','affirm','afterpay','sc'];
-          if(subs.some(kw => lowD.includes(kw))) type = "SUBS";
-          else if (lowD.includes('rent') || lowD.includes('peco') || lowD.includes('insurance') || lowD.includes('utility')) type = "HOGAR";
-          db.push({ date: row[iD] || 'S/F', desc: d, amount: a, type: type });
-        }
-      });
-      ui();
+      try {
+        const data = new Uint8Array(evt.target.result);
+        const workbook = XLSX.read(data, {type: 'array'});
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet);
+        
+        rows.forEach(row => {
+          const keys = Object.keys(row);
+          const iD = keys.find(k => k.toLowerCase().includes('date') || k.toLowerCase().includes('fecha'));
+          const iS = keys.find(k => k.toLowerCase().includes('desc') || k.toLowerCase().includes('name'));
+          const iA = keys.find(k => k.toLowerCase().includes('amount') || k.toLowerCase().includes('monto'));
+
+          let a = parseFloat(String(row[iA] || 0).replace(/[$\s,]/g, ''));
+          if(!isNaN(a) && a !== 0) {
+            let d = row[iS] || 'Transacción', type = a >= 0 ? "INGRESO" : "VARIO";
+            const lowD = String(d).toLowerCase();
+            const subs = ['netflix','spotify','disney','apple','icloud','amazon','gym','canva','hbo','klarna','affirm','afterpay','sc'];
+            if(subs.some(kw => lowD.includes(kw))) type = "SUBS";
+            else if (lowD.includes('rent') || lowD.includes('peco') || lowD.includes('insurance') || lowD.includes('utility')) type = "HOGAR";
+            db.push({ date: row[iD] || 'S/F', desc: d, amount: a, type: type });
+          }
+        });
+        ui();
+        alert("¡Archivo cargado con éxito!");
+      } catch (err) { alert("Error al leer el archivo. Prueba descargarlo nuevamente de Chase en formato CSV."); }
     };
-    reader.readAsArrayBuffer(file);
+    reader.readAsArrayBuffer(e.target.files[0]);
   });
 
   function ui() {
@@ -140,46 +140,50 @@
       if(boxes[t.type]) { boxes[t.type].innerHTML += row; totals[t.type] += Math.abs(t.amount); }
     });
 
-    // Guardar límites y actualizar interfaz
-    const ls = document.getElementById('limit-s').value;
-    const lh = document.getElementById('limit-h').value;
-    localStorage.setItem('limit-s', ls);
-    localStorage.setItem('limit-h', lh);
-
     document.getElementById('ti').innerText = `$${totals.INGRESO.toFixed(2)}`;
     document.getElementById('th').innerText = `$${totals.HOGAR.toFixed(2)}`;
     document.getElementById('ts').innerText = `$${totals.SUBS.toFixed(2)}`;
     document.getElementById('te').innerText = `$${totals.VARIO.toFixed(2)}`;
 
-    // Colores de Alerta
-    document.getElementById('col-subs').style.borderColor = totals.SUBS > ls ? "var(--alert)" : "transparent";
-    document.getElementById('col-house').style.borderColor = totals.HOGAR > lh ? "var(--alert)" : "transparent";
+    // Alertas de Límites
+    const limS = parseFloat(document.getElementById('limit-s').value);
+    const limH = parseFloat(document.getElementById('limit-h').value);
+    document.getElementById('col-subs').style.borderColor = totals.SUBS > limS ? "var(--alert)" : "transparent";
+    document.getElementById('stat-subs').style.borderTopColor = totals.SUBS > limS ? "var(--alert)" : "transparent";
 
-    // Gráfico
-    const ctx = document.getElementById('myChart').getContext('2d');
+    // Gráfico (REFORZADO)
+    const ctx = document.getElementById('myChart');
     if (myChart) myChart.destroy();
+    
     myChart = new Chart(ctx, {
       type: 'doughnut',
-      data: { labels: ['Hogar','Subs','Otros'], datasets: [{ data: [totals.HOGAR, totals.SUBS, totals.VARIO], backgroundColor: ['#bcd4e6','#fbc4ab','#ffb3ba'], borderWidth: 0 }] },
-      options: { cutout: '80%', plugins: { legend: { display: false } } }
+      data: {
+        labels: ['Hogar', 'Subs', 'Otros'],
+        datasets: [{
+          data: [totals.HOGAR || 0.1, totals.SUBS || 0.1, totals.VARIO || 0.1], // Pequeño valor para que no sea 0 total
+          backgroundColor: ['#bcd4e6', '#fbc4ab', '#ffb3ba'],
+          borderWidth: 0
+        }]
+      },
+      options: { cutout: '80%', animation: false, plugins: { legend: { display: false } } }
     });
     
-    // Cálculo de porcentaje
+    // Porcentaje de ahorro
     const totalGasto = totals.HOGAR + totals.SUBS + totals.VARIO;
-    let ahorroText = "0%";
+    let per = 0;
     if(totals.INGRESO > 0) {
-      const per = Math.round(((totals.INGRESO - totalGasto) / totals.INGRESO) * 100);
-      ahorroText = per + "%";
+      per = Math.round(((totals.INGRESO - totalGasto) / totals.INGRESO) * 100);
+      document.getElementById('chart-percent').innerText = per + "%";
       document.getElementById('chart-percent').style.color = per < 0 ? 'var(--alert)' : '#4ade80';
-    } else if (totalGasto > 0) {
-      ahorroText = "Gasto";
-      document.getElementById('chart-percent').style.color = 'var(--alert)';
+    } else {
+      document.getElementById('chart-percent').innerText = "0%";
     }
-    document.getElementById('chart-percent').innerText = ahorroText;
 
-    localStorage.setItem('wallet_math_v107', JSON.stringify(db));
+    localStorage.setItem('wallet_v_final_110', JSON.stringify(db));
   }
-  ui();
+
+  // Ejecutar UI al cargar
+  setTimeout(ui, 500);
 </script>
 </body>
 </html>

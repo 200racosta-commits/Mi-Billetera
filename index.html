@@ -3,127 +3,116 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Billetera Elite - Tracker Personal</title>
+  <title>Billetera Guardian - v4.0</title>
   <style>
-    :root {
-      --bg: #f0f2f5;
-      --card: #ffffff;
-      --income: #b2d8d8; /* Verde Pastel */
-      --expense: #ffb3ba; /* Rosa Pastel */
-      --house: #bae1ff; /* Azul Pastel */
-      --text: #4a4a4a;
-      --accent: #d9adf6; /* Lavanda */
+    :root { 
+      --bg: #fdfbfb; --card: #ffffff; 
+      --income: #c1e1c1; --house: #bcd4e6; --subs: #fbc4ab; --expense: #ffb3ba; 
+      --text: #555; --accent: #b19cd9; --alert: #ff6b6b;
     }
-    body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
-    .container { max-width: 1400px; margin: 0 auto; }
+    body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
+    .container { max-width: 1500px; margin: 0 auto; }
     
-    /* Header & Stats */
-    .dashboard-header { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
-    .stat-card { background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; }
-    .stat-val { font-size: 22px; font-weight: bold; margin-top: 5px; }
+    /* Panel de Alertas */
+    .alert-panel { background: #fff5f5; border: 1px solid var(--alert); color: var(--alert); padding: 15px; border-radius: 12px; margin-bottom: 20px; display: none; font-weight: bold; text-align: center; animation: pulse 2s infinite; }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+
+    .dashboard-header { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
+    .stat-card { background: var(--card); padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); text-align: center; border-bottom: 4px solid #ddd; }
+    .stat-val { font-size: 20px; font-weight: bold; margin-top: 5px; }
+
+    /* Configuración de Alertas */
+    .config-bar { background: var(--card); padding: 10px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: center; gap: 15px; align-items: center; font-size: 12px; border: 1px solid #eee; }
+    .config-bar input { width: 60px; padding: 4px; border-radius: 5px; border: 1px solid #ddd; }
+
+    .manual-entry { background: var(--card); padding: 20px; border-radius: 15px; margin-bottom: 25px; border: 1px dashed var(--accent); display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; justify-content: center; }
+    .manual-entry select, .manual-entry input { padding: 8px; border: 1px solid #eee; border-radius: 8px; outline: none; }
+    .btn-add { background: var(--accent); color: white; border: none; padding: 8px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+
+    .main-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+    .column { background: var(--card); border-radius: 15px; overflow: hidden; height: 500px; display: flex; flex-direction: column; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: 0.3s; }
+    .column.over-limit { border: 2px solid var(--alert); transform: scale(1.02); }
+    .col-header { padding: 12px; font-weight: bold; text-align: center; color: white; text-transform: uppercase; font-size: 11px; }
+    .scroll-area { overflow-y: auto; flex-grow: 1; padding: 5px; }
     
-    /* Charts Area */
-    .charts-container { display: flex; gap: 20px; margin-bottom: 25px; background: var(--card); padding: 20px; border-radius: 15px; justify-content: space-around; flex-wrap: wrap; }
-    .chart-item { text-align: center; min-width: 150px; }
-    .percent-circle { font-size: 24px; font-weight: 800; color: var(--accent); }
+    .item-row { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #fafafa; font-size: 12px; }
+    .btn-del { color: #ccc; cursor: pointer; }
 
-    /* Controls */
-    .toolbar { display: flex; justify-content: center; gap: 20px; margin-bottom: 30px; }
-    .btn-upload { background: var(--accent); color: white; padding: 12px 30px; border-radius: 25px; font-weight: bold; cursor: pointer; border: none; box-shadow: 0 4px 15px rgba(217, 173, 246, 0.4); }
-
-    /* Three Column Layout */
-    .main-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-    .column { background: var(--card); border-radius: 20px; overflow: hidden; height: 550px; display: flex; flex-direction: column; box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
-    .col-header { padding: 15px; font-weight: bold; text-align: center; color: white; text-transform: uppercase; letter-spacing: 1px; }
-    .scroll-area { overflow-y: auto; flex-grow: 1; padding: 10px; }
-    
-    .item-row { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #f0f0f0; align-items: center; }
-    .item-info { display: flex; flex-direction: column; font-size: 13px; }
-    .item-date { font-size: 10px; color: #999; }
-    .item-amt { font-weight: bold; }
-
-    @media (max-width: 1000px) { .main-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 1100px) { .main-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 600px) { .main-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h1 style="text-align:center; color: var(--accent); margin-bottom: 20px;">Mi Dashboard Financiero</h1>
+  <h2 style="text-align:center; color: var(--accent); font-weight: 800;">Billetera Guardian PRO</h2>
 
-  <!-- Estadísticas Principales -->
+  <!-- Alerta Inteligente -->
+  <div id="main-alert" class="alert-panel">⚠️ ¡ATENCIÓN! Has superado tu límite mensual de suscripciones.</div>
+
+  <!-- Configuración de Límites -->
+  <div class="config-bar">
+    <span>Configurar Límite de Suscripciones: $</span>
+    <input type="number" id="sub-limit" value="100" onchange="ui()">
+    <span style="margin-left: 20px">Límite Hogar: $</span>
+    <input type="number" id="house-limit" value="1500" onchange="ui()">
+  </div>
+
   <div class="dashboard-header">
-    <div class="stat-card" style="border-bottom: 4px solid var(--income)">
-      <div style="font-size: 11px; color: #999">TOTAL ENTRADAS</div>
-      <div id="ti" class="stat-val">$0.00</div>
-    </div>
-    <div class="stat-card" style="border-bottom: 4px solid var(--expense)">
-      <div style="font-size: 11px; color: #999">GASTOS TOTALES</div>
-      <div id="te" class="stat-val">$0.00</div>
-    </div>
-    <div class="stat-card" style="border-bottom: 4px solid var(--house)">
-      <div style="font-size: 11px; color: #999">HOGAR & FIJOS</div>
-      <div id="th" class="stat-val">$0.00</div>
-    </div>
+    <div class="stat-card" style="border-color: var(--income)"><div>Ingresos</div><div id="ti" class="stat-val">$0.00</div></div>
+    <div class="stat-card" style="border-color: var(--house)"><div>Hogar</div><div id="th" class="stat-val">$0.00</div></div>
+    <div class="stat-card" style="border-color: var(--subs)"><div>Suscripciones</div><div id="ts" class="stat-val">$0.00</div></div>
+    <div class="stat-card" style="border-color: var(--expense)"><div>Otros</div><div id="te" class="stat-val">$0.00</div></div>
   </div>
 
-  <!-- Panel de Porcentajes -->
-  <div class="charts-container">
-    <div class="chart-item">
-      <div id="p-inc" class="percent-circle">0%</div>
-      <div style="font-size: 10px; color: #999">Ratio Ahorro/Ingreso</div>
-    </div>
-    <div class="chart-item">
-      <div id="p-house" class="percent-circle" style="color: var(--house)">0%</div>
-      <div style="font-size: 10px; color: #999">% Gasto en Hogar</div>
-    </div>
-    <div class="chart-item">
-      <div id="p-exp" class="percent-circle" style="color: var(--expense)">0%</div>
-      <div style="font-size: 10px; color: #999">% Gastos Varios</div>
-    </div>
+  <div class="manual-entry">
+    <input type="text" id="m-desc" placeholder="Descripción">
+    <input type="number" id="m-amt" placeholder="0.00">
+    <select id="m-type">
+      <option value="HOGAR">🏠 Hogar</option>
+      <option value="SUBS">📺 Suscripción</option>
+      <option value="INGRESO">💰 Ingreso</option>
+      <option value="VARIO">🛍️ Vario</option>
+    </select>
+    <button class="btn-add" onclick="addManual()">Añadir</button>
   </div>
 
-  <div class="toolbar">
-    <label class="btn-upload">
-      📥 SUBIR CSV
-      <input type="file" id="fIn" accept=".csv" style="display:none">
+  <div style="text-align:center; margin-bottom: 20px;">
+    <label style="background:var(--accent); color:white; padding: 10px 25px; border-radius: 20px; font-weight:bold; cursor:pointer">
+      📥 CARGAR CSV <input type="file" id="fIn" accept=".csv" style="display:none">
     </label>
-    <button onclick="localStorage.clear(); location.reload();" style="background:none; border:1px solid #ccc; color:#999; padding: 5px 15px; border-radius: 20px; cursor:pointer; font-size:11px;">Reset Mes</button>
   </div>
 
   <div class="main-grid">
-    <!-- COLUMNA 1: INGRESOS -->
-    <div class="column">
-      <div class="col-header" style="background: var(--income)">💰 Ingresos</div>
-      <div class="scroll-area" id="box-in"></div>
-    </div>
-
-    <!-- COLUMNA 2: HOGAR / FIJOS -->
-    <div class="column">
-      <div class="col-header" style="background: var(--house)">🏠 Hogar & Servicios</div>
-      <div class="scroll-area" id="box-house"></div>
-    </div>
-
-    <!-- COLUMNA 3: GASTOS VARIOS -->
-    <div class="column">
-      <div class="col-header" style="background: var(--expense)">🛍️ Otros Gastos</div>
-      <div class="scroll-area" id="box-out"></div>
-    </div>
+    <div class="column" id="col-in"><div class="col-header" style="background:var(--income)">💰 Ingresos</div><div class="scroll-area" id="box-in"></div></div>
+    <div class="column" id="col-house"><div class="col-header" style="background:var(--house)">🏠 Hogar</div><div class="scroll-area" id="box-house"></div></div>
+    <div class="column" id="col-subs"><div class="col-header" style="background:var(--subs)">📺 Suscripciones</div><div class="scroll-area" id="box-subs"></div></div>
+    <div class="column" id="col-out"><div class="col-header" style="background:var(--expense)">🛍️ Otros</div><div class="scroll-area" id="box-out"></div></div>
   </div>
 </div>
 
 <script>
-  let db = JSON.parse(localStorage.getItem('wallet_v20')) || [];
+  let db = JSON.parse(localStorage.getItem('wallet_v40')) || [];
+
+  function addManual() {
+    const desc = document.getElementById('m-desc').value;
+    const amt = parseFloat(document.getElementById('m-amt').value);
+    const type = document.getElementById('m-type').value;
+    if(desc && !isNaN(amt)) {
+      db.push({ date: new Date().toLocaleDateString(), desc: desc, amount: type === "INGRESO" ? amt : -Math.abs(amt), type: type });
+      ui();
+      document.getElementById('m-desc').value = ''; document.getElementById('m-amt').value = '';
+    }
+  }
 
   document.getElementById('fIn').addEventListener('change', function(e) {
-    const file = e.target.files[0];
     const reader = new FileReader();
     reader.onload = function(evt) {
       const lines = evt.target.result.split(/\r?\n/);
-      const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-      
-      const iD = headers.findIndex(h => /date|fecha/i.test(h));
-      const iS = headers.findIndex(h => /description|desc|memo|name/i.test(h));
-      const iA = headers.findIndex(h => /amount|monto|total/i.test(h));
+      const h = lines[0].split(',').map(x => x.trim().replace(/"/g, ''));
+      const iD = h.findIndex(k => /date|fecha/i.test(k));
+      const iS = h.findIndex(k => /desc|name|memo/i.test(k));
+      const iA = h.findIndex(k => /amount|monto|total/i.test(k));
 
       for (let i = 1; i < lines.length; i++) {
         const c = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
@@ -131,68 +120,59 @@
           let a = parseFloat(c[iA]?.replace(/[$\s"]/g, '').replace(/,/g, ''));
           if (!isNaN(a)) {
             let d = c[iS]?.replace(/"/g, '') || 'Detalle';
-            let cat = "VARIO";
+            let type = a >= 0 ? "INGRESO" : "VARIO";
             const lowD = d.toLowerCase();
-            
-            // Reglas de Clasificación para la columna Hogar
-            if(lowD.includes('rent') || lowD.includes('peco') || lowD.includes('utility') || 
-               lowD.includes('insurance') || lowD.includes('pseg') || lowD.includes('auto') || 
-               lowD.includes('mortgage')) {
-              cat = "HOGAR";
-            } else if (a >= 0) {
-              cat = "INGRESO";
-            }
-            
-            db.push({ date: c[iD]?.replace(/"/g, '') || 'S/F', desc: d, amount: a, type: cat });
+            const subKeywords = ['netflix', 'spotify', 'disney', 'hulu', 'apple', 'icloud', 'amazon prime', 'gym', 'nintendo', 'youtube', 'canva', 'hbo', 'paramount'];
+            if(subKeywords.some(kw => lowD.includes(kw))) type = "SUBS";
+            else if (lowD.includes('rent') || lowD.includes('peco') || lowD.includes('insurance') || lowD.includes('utility')) type = "HOGAR";
+            db.push({ date: c[iD]?.replace(/"/g, '') || 'S/F', desc: d, amount: a, type: type });
           }
         }
       }
       ui();
     };
-    reader.readAsText(file);
+    reader.readAsText(e.target.files[0]);
   });
 
   function ui() {
-    const bIn = document.getElementById('box-in');
-    const bHouse = document.getElementById('box-house');
-    const bOut = document.getElementById('box-out');
-    bIn.innerHTML = ''; bHouse.innerHTML = ''; bOut.innerHTML = '';
-    
-    let ti = 0, te = 0, th = 0;
+    const boxes = { INGRESO: document.getElementById('box-in'), HOGAR: document.getElementById('box-house'), SUBS: document.getElementById('box-subs'), VARIO: document.getElementById('box-out') };
+    Object.values(boxes).forEach(b => b.innerHTML = '');
+    let totals = { INGRESO: 0, HOGAR: 0, SUBS: 0, VARIO: 0 };
 
-    db.sort((a,b) => new Date(b.date) - new Date(a.date));
-
-    db.forEach(t => {
+    db.forEach((t, idx) => {
       const row = `<div class="item-row">
-        <div class="item-info">
-          <span class="item-date">${t.date}</span>
-          <span style="font-weight:600">${t.desc.substring(0,22)}</span>
-        </div>
-        <span class="item-amt" style="color:${t.amount >= 0 ? '#4caf50' : '#f44336'}">$${Math.abs(t.amount).toFixed(2)}</span>
+        <div><b>${t.desc.substring(0,20)}</b></div>
+        <div style="font-weight:bold">$${Math.abs(t.amount).toFixed(2)} <span onclick="db.splice(${idx},1);ui()" class="btn-del">×</span></div>
       </div>`;
-
-      if (t.type === "INGRESO") { bIn.innerHTML += row; ti += t.amount; }
-      else if (t.type === "HOGAR") { bHouse.innerHTML += row; th += Math.abs(t.amount); }
-      else { bOut.innerHTML += row; te += Math.abs(t.amount); }
+      if(boxes[t.type]) {
+        boxes[t.type].innerHTML += row;
+        totals[t.type] += Math.abs(t.amount);
+      }
     });
 
-    // Totales
-    document.getElementById('ti').innerText = `$${ti.toFixed(2)}`;
-    document.getElementById('th').innerText = `$${th.toFixed(2)}`;
-    document.getElementById('te').innerText = `$${te.toFixed(2)}`;
+    document.getElementById('ti').innerText = `$${totals.INGRESO.toFixed(2)}`;
+    document.getElementById('th').innerText = `$${totals.HOGAR.toFixed(2)}`;
+    document.getElementById('ts').innerText = `$${totals.SUBS.toFixed(2)}`;
+    document.getElementById('te').innerText = `$${totals.VARIO.toFixed(2)}`;
 
-    // Estadísticas en Porcentaje
-    if(ti > 0) {
-      const gTot = th + te;
-      document.getElementById('p-inc').innerText = Math.round(((ti - gTot) / ti) * 100) + "%";
-      document.getElementById('p-house').innerText = Math.round((th / ti) * 100) + "%";
-      document.getElementById('p-exp').innerText = Math.round((te / ti) * 100) + "%";
+    // LÓGICA DE ALERTA (LECCIÓN 2)
+    const subLimit = parseFloat(document.getElementById('sub-limit').value);
+    const houseLimit = parseFloat(document.getElementById('house-limit').value);
+    const alertBox = document.getElementById('main-alert');
+    
+    let isAlert = false;
+    if(totals.SUBS > subLimit) {
+      document.getElementById('col-subs').classList.add('over-limit');
+      isAlert = true;
+    } else {
+      document.getElementById('col-subs').classList.remove('over-limit');
     }
 
-    localStorage.setItem('wallet_v20', JSON.stringify(db));
+    alertBox.style.display = isAlert ? 'block' : 'none';
+
+    localStorage.setItem('wallet_v40', JSON.stringify(db));
   }
   ui();
 </script>
 </body>
 </html>
-

@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Wallet Pro - Chase & TD</title>
+  <style>
+    :root { --bg: #0b0f19; --card: #161b2a; --gold: #f59e0b; --green: #10b981; --red: #ef4444; --text: #e2e8f0; }
+    body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    
+    /* Header & Stats */
+    .header { margin-bottom: 30px; border-bottom: 1px solid rgba(245,158,11,0.2); padding-bottom: 20px; }
+    .title { font-size: 28px; font-weight: 800; color: var(--gold); margin: 0; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px; }
+    .stat-card { background: var(--card); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+    .stat-val { font-size: 24px; font-weight: bold; margin-top: 5px; }
+
+    /* Controls */
+    .toolbar { display: flex; flex-wrap: wrap; gap: 15px; align-items: center; background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; margin-bottom: 30px; }
+    .btn-upload { background: var(--gold); color: #000; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+    .btn-upload:hover { opacity: 0.8; transform: scale(1.02); }
+
+    /* Tables Layout */
+    .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+    .table-container { background: var(--card); border-radius: 16px; overflow: hidden; height: 600px; display: flex; flex-direction: column; }
+    .table-title { padding: 15px; font-weight: bold; text-align: center; font-size: 14px; letter-spacing: 1px; }
+    .scroll-area { overflow-y: auto; flex-grow: 1; }
+    
+    table { width: 100%; border-collapse: collapse; }
+    td { padding: 12px 15px; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 13px; }
+    .date { color: #64748b; font-size: 11px; }
+    .desc { font-weight: 500; display: block; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .badge { font-size: 9px; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.1); color: #94a3b8; }
+    
+    @media (max-width: 850px) { .main-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1 class="title">Billetera Inteligente Pro</h1>
+    <div class="stats-grid">
+      <div class="stat-card" style="border-top: 4px solid var(--green)">
+        <div style="font-size: 10px; color: #94a3b8">INGRESOS</div>
+        <div id="ti" class="stat-val" style="color: var(--green)">$0.00</div>
+      </div>
+      <div class="stat-card" style="border-top: 4px solid var(--red)">
+        <div style="font-size: 10px; color: #94a3b8">GASTOS</div>
+        <div id="te" class="stat-val" style="color: var(--red)">$0.00</div>
+      </div>
+      <div class="stat-card" style="border-top: 4px solid var(--gold)">
+        <div style="font-size: 10px; color: #94a3b8">BALANCE</div>
+        <div id="bn" class="stat-val">$0.00</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <label class="btn-upload">
+      📥 SUBIR CSV (CHASE/TD/CAP1)
+      <input type="file" id="fIn" accept=".csv" style="display:none">
+    </label>
+    <button onclick="if(confirm('¿Reiniciar?')) {localStorage.clear(); location.reload();}" style="background:none; border:none; color:var(--red); cursor:pointer; font-weight:bold; font-size:12px;">VACIAR TODO</button>
+  </div>
+
+  <div class="main-grid">
+    <!-- ENTRADAS -->
+    <div class="table-container">
+      <div class="table-title" style="color: var(--green); background: rgba(16,185,129,0.05)">📈 ENTRADAS (MONEY IN)</div>
+      <div class="scroll-area">
+        <table><tbody id="inc-b"></tbody></table>
+      </div>
+    </div>
+
+    <!-- SALIDAS -->
+    <div class="table-container">
+      <div class="table-title" style="color: var(--red); background: rgba(239,68,68,0.05)">📉 SALIDAS (MONEY OUT)</div>
+      <div class="scroll-area">
+        <table><tbody id="exp-b"></tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let db = JSON.parse(localStorage.getItem('wallet_v12')) || [];
+
+  document.getElementById('fIn').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      const lines = evt.target.result.split(/\r?\n/);
+      const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+      
+      const iD = headers.findIndex(h => /date|fecha/i.test(h));
+      const iS = headers.findIndex(h => /description|desc|memo|name/i.test(h));
+      const iA = headers.findIndex(h => /amount|monto|total/i.test(h));
+
+      for (let i = 1; i < lines.length; i++) {
+        const c = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+        if (c.length > 1) {
+          let a = parseFloat(c[iA]?.replace(/[$\s"]/g, '').replace(/,/g, ''));
+          if (!isNaN(a)) {
+            let d = c[iS]?.replace(/"/g, '') || 'Sin detalle';
+            let cat = "OTROS";
+            const lowD = d.toLowerCase();
+            if(lowD.includes('zelle')) cat = "ZELLE";
+            if(lowD.includes('paypal')) cat = "PAYPAL";
+            if(lowD.includes('transfer')) cat = "TRANSFERENCIA";
+            if(lowD.includes('direct dep')) cat = "SUELDO";
+            
+            db.push({ date: c[iD]?.replace(/"/g, '') || 'S/F', desc: d, amount: a, cat: cat });
+          }
+        }
+      }
+      ui();
+    };
+    reader.readAsText(file);
+  });
+
+  function ui() {
+    const iB = document.getElementById('inc-b');
+    const eB = document.getElementById('exp-b');
+    iB.innerHTML = ''; eB.innerHTML = '';
+    let ti = 0, te = 0;
+
+    db.sort((a,b) => new Date(b.date) - new Date(a.date));
+
+    db.forEach(t => {
+      const row = `<tr>
+        <td>
+          <span class="date">${t.date}</span>
+          <span class="desc">${t.desc}</span>
+          <span class="badge">${t.cat}</span>
+        </td>
+        <td style="text-align:right; font-weight:bold; color:${t.amount >= 0 ? 'var(--green)' : 'var(--red)'}">
+          $${Math.abs(t.amount).toFixed(2)}
+        </td>
+      </tr>`;
+      if (t.amount >= 0) { iB.innerHTML += row; ti += t.amount; }
+      else { eB.innerHTML += row; te += Math.abs(t.amount); }
+    });
+
+    document.getElementById('ti').innerText = `$${ti.toFixed(2)}`;
+    document.getElementById('te').innerText = `$${te.toFixed(2)}`;
+    const bal = ti - te;
+    document.getElementById('bn').innerText = `$${bal.toFixed(2)}`;
+    document.getElementById('bn').style.color = bal >= 0 ? 'var(--green)' : 'var(--red)';
+    localStorage.setItem('wallet_v12', JSON.stringify(db));
+  }
+  ui();
+</script>
+</body>
+</html>

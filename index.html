@@ -3,33 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Billetera Simple Pro</title>
+  <title>Billetera Guardian Universal</title>
   <style>
-    :root { --bg: #fdfbfb; --card: #ffffff; --income: #c1e1c1; --house: #bcd4e6; --subs: #fbc4ab; --expense: #ffb3ba; --text: #4a4a4a; --accent: #b19cd9; }
-    body { font-family: sans-serif; background: var(--bg); color: var(--text); padding: 15px; margin: 0; }
+    :root { --bg: #fdfbfb; --card: #ffffff; --income: #c1e1c1; --house: #bcd4e6; --subs: #fbc4ab; --expense: #ffb3ba; --text: #4a4a4a; --accent: #b19cd9; --alert: #ff6b6b; }
+    body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 15px; margin: 0; }
     .container { max-width: 1200px; margin: 0 auto; }
     
-    /* Totales arriba */
+    /* Panel de Límites */
+    .limit-bar { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px; display: flex; justify-content: center; gap: 20px; font-size: 13px; font-weight: bold; }
+    .limit-bar input { width: 80px; padding: 5px; border: 1px solid #ddd; border-radius: 5px; color: var(--accent); }
+
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
-    .stat-card { background: var(--card); padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-bottom: 5px solid #ddd; }
+    .stat-card { background: var(--card); padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-bottom: 5px solid #ddd; transition: 0.3s; }
     .stat-val { font-size: 24px; font-weight: bold; margin-top: 5px; }
 
-    /* Formulario y Carga */
     .actions-panel { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 25px; text-align: center; }
     input, select { padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin: 5px; outline: none; }
-    .btn-add { background: var(--accent); color: white; border: none; padding: 10px 25px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-    .btn-upload { background: #555; color: white; padding: 12px 30px; border-radius: 30px; font-weight: bold; cursor: pointer; display: inline-block; margin-top: 15px; }
+    .btn-upload { background: var(--accent); color: white; padding: 12px 30px; border-radius: 30px; font-weight: bold; cursor: pointer; display: inline-block; margin-top: 10px; box-shadow: 0 4px 10px rgba(177, 156, 217, 0.3); }
 
-    /* 4 Columnas */
     .main-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
-    .column { background: var(--card); border-radius: 15px; height: 500px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-    .col-header { padding: 12px; text-align: center; color: white; font-weight: bold; font-size: 12px; letter-spacing: 1px; }
+    .column { background: var(--card); border-radius: 15px; height: 500px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 2px solid transparent; transition: 0.3s; }
+    .col-header { padding: 12px; text-align: center; color: white; font-weight: bold; font-size: 11px; text-transform: uppercase; }
     .scroll-area { overflow-y: auto; flex-grow: 1; padding: 10px; }
     
-    .item-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f5f5f5; font-size: 12px; }
-    .item-date { font-size: 10px; color: #aaa; display: block; }
-    .btn-del { color: #ddd; cursor: pointer; font-weight: bold; border: none; background: none; }
-    .btn-del:hover { color: #ff6b6b; }
+    .item-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f5f5f5; font-size: 12px; align-items: center; }
+    .btn-del { color: #ddd; cursor: pointer; font-weight: bold; border: none; background: none; font-size: 14px; }
+    .over-limit { border-color: var(--alert) !important; background: #fff5f5 !important; }
 
     @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
   </style>
@@ -37,50 +36,52 @@
 <body>
 
 <div class="container">
-  <h1 style="text-align:center; color: var(--accent);">Mi Billetera Inteligente</h1>
+  <h1 style="text-align:center; color: var(--accent); font-weight: 800; margin-bottom: 10px;">Billetera Guardian PRO</h1>
+
+  <!-- Panel de Límites -->
+  <div class="limit-bar">
+    <div>Límite Subs: $ <input type="number" id="limS" value="100" oninput="render()"></div>
+    <div>Límite Hogar: $ <input type="number" id="limH" value="1500" oninput="render()"></div>
+  </div>
 
   <div class="stats-grid">
     <div class="stat-card" style="border-color: var(--income)">Ingresos<div id="ti" class="stat-val">$0.00</div></div>
-    <div class="stat-card" style="border-color: var(--house)">Hogar<div id="th" class="stat-val">$0.00</div></div>
-    <div class="stat-card" style="border-color: var(--subs)">Suscripciones<div id="ts" class="stat-val">$0.00</div></div>
+    <div id="card-h" class="stat-card" style="border-color: var(--house)">Hogar<div id="th" class="stat-val">$0.00</div></div>
+    <div id="card-s" class="stat-card" style="border-color: var(--subs)">Suscripciones<div id="ts" class="stat-val">$0.00</div></div>
     <div class="stat-card" style="border-color: var(--expense)">Otros Gastos<div id="te" class="stat-val">$0.00</div></div>
   </div>
 
   <div class="actions-panel">
-    <div style="margin-bottom: 15px;">
-      <input type="text" id="m-desc" placeholder="¿Qué gastaste?">
-      <input type="number" id="m-amt" placeholder="Monto" style="width: 100px;">
-      <select id="m-type">
-        <option value="INGRESO">💰 Ingreso</option>
-        <option value="HOGAR">🏠 Hogar</option>
-        <option value="SUBS">📺 Suscripción</option>
-        <option value="VARIO">🛍️ Otros</option>
-      </select>
-      <button class="btn-add" onclick="addManual()">Añadir</button>
-    </div>
-    
+    <input type="text" id="m-desc" placeholder="Descripción manual">
+    <input type="number" id="m-amt" placeholder="Monto" style="width: 100px;">
+    <select id="m-type">
+      <option value="INGRESO">💰 Ingreso</option>
+      <option value="HOGAR">🏠 Hogar</option>
+      <option value="SUBS">📺 Suscripción</option>
+      <option value="VARIO">🛍️ Otros</option>
+    </select>
+    <button onclick="addManual()" style="padding:10px 20px; background:var(--accent); color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">+ Añadir</button>
+    <br>
     <label class="btn-upload">
-      ➕ CARGAR ARCHIVO DEL BANCO (CSV)
+      📥 CARGAR CUALQUIER BANCO (CSV)
       <input type="file" id="fIn" accept=".csv" style="display:none">
     </label>
     <button onclick="if(confirm('¿Borrar todo?')){localStorage.clear(); location.reload();}" style="background:none; border:none; color:#ccc; cursor:pointer; font-size:11px; margin-left:20px;">Reiniciar Mes</button>
   </div>
 
   <div class="main-grid">
-    <div class="column"><div class="col-header" style="background:var(--income)">INGRESOS</div><div class="scroll-area" id="box-in"></div></div>
-    <div class="column"><div class="col-header" style="background:var(--house)">HOGAR</div><div class="scroll-area" id="box-h"></div></div>
-    <div class="column"><div class="col-header" style="background:var(--subs)">SUBSCRIPCIONES</div><div class="scroll-area" id="box-s"></div></div>
-    <div class="column"><div class="col-header" style="background:var(--expense)">OTROS</div><div class="scroll-area" id="box-o"></div></div>
+    <div class="column" id="col-in"><div class="col-header" style="background:var(--income)">INGRESOS</div><div class="scroll-area" id="box-in"></div></div>
+    <div class="column" id="col-house"><div class="col-header" style="background:var(--house)">HOGAR</div><div class="scroll-area" id="box-h"></div></div>
+    <div class="column" id="col-subs"><div class="col-header" style="background:var(--subs)">SUBSCRIPCIONES</div><div class="scroll-area" id="box-s"></div></div>
+    <div class="column" id="col-out"><div class="col-header" style="background:var(--expense)">OTROS</div><div class="scroll-area" id="box-o"></div></div>
   </div>
 </div>
 
 <script>
-  let db = JSON.parse(localStorage.getItem('wallet_blindada_v1')) || [];
+  let db = JSON.parse(localStorage.getItem('wallet_universal_v1')) || [];
 
   function addManual() {
-    const d = document.getElementById('m-desc').value;
-    const a = parseFloat(document.getElementById('m-amt').value);
-    const t = document.getElementById('m-type').value;
+    const d = document.getElementById('m-desc').value, a = parseFloat(document.getElementById('m-amt').value), t = document.getElementById('m-type').value;
     if(d && !isNaN(a)) {
       db.push({ date: new Date().toLocaleDateString(), desc: d, amount: t === "INGRESO" ? Math.abs(a) : -Math.abs(a), type: t });
       render();
@@ -92,33 +93,35 @@
     const reader = new FileReader();
     reader.onload = function(evt) {
       const lines = evt.target.result.split('\n');
+      if (lines.length < 2) return;
+
+      // DETECTOR UNIVERSAL DE COLUMNAS
+      const headers = lines[0].toLowerCase().split(',').map(h => h.trim().replace(/"/g, ''));
+      const iDate = headers.findIndex(h => h.includes('date') || h.includes('fecha'));
+      const iDesc = headers.findIndex(h => h.includes('desc') || h.includes('name') || h.includes('memo') || h.includes('concepto'));
+      const iAmt = headers.findIndex(h => h.includes('amount') || h.includes('monto') || h.includes('gross') || h.includes('total') || h.includes('importe'));
+
       let count = 0;
-
       for (let i = 1; i < lines.length; i++) {
-        // Regex para separar por comas respetando las comas dentro de comillas
         const row = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-        
-        if (row.length >= 4) {
-          // Según tu foto: col 1=Date, col 2=Desc, col 3=Amount
-          let rawDate = row[1]?.replace(/"/g, '');
-          let rawDesc = row[2]?.replace(/"/g, '');
-          let rawAmt = parseFloat(row[3]?.replace(/[$\s"]/g, '').replace(/,/g, ''));
-
+        if (row.length > 1 && iAmt !== -1) {
+          let rawAmt = parseFloat(row[iAmt]?.replace(/[$\s"]/g, '').replace(/,/g, ''));
           if (!isNaN(rawAmt)) {
+            let desc = row[iDesc]?.replace(/"/g, '') || 'Banco';
             let type = rawAmt >= 0 ? "INGRESO" : "VARIO";
-            const dLow = rawDesc.toLowerCase();
+            const dL = desc.toLowerCase();
             const subs = ['netflix','spotify','disney','apple','icloud','amazon','gym','canva','hbo','klarna','affirm','afterpay','sc'];
             
-            if(subs.some(kw => dLow.includes(kw))) type = "SUBS";
-            else if (dLow.includes('rent') || dLow.includes('peco') || dLow.includes('insurance') || dLow.includes('utility')) type = "HOGAR";
+            if(subs.some(kw => dL.includes(kw))) type = "SUBS";
+            else if (dL.includes('rent') || dL.includes('peco') || dL.includes('insurance') || dL.includes('utility')) type = "HOGAR";
             
-            db.push({ date: rawDate, desc: rawDesc, amount: rawAmt, type: type });
+            db.push({ date: row[iDate]?.replace(/"/g, '') || 'S/F', desc: desc, amount: rawAmt, type: type });
             count++;
           }
         }
       }
       render();
-      alert("¡Se cargaron " + count + " transacciones con éxito!");
+      alert("¡Cargadas " + count + " transacciones de forma universal!");
     };
     reader.readAsText(e.target.files[0]);
   });
@@ -130,24 +133,27 @@
 
     db.forEach((t, i) => {
       const row = `<div class="item-row">
-        <div><span class="item-date">${t.date}</span><b>${t.desc.substring(0,20)}</b></div>
+        <div><span style="font-size:9px;color:#aaa;display:block">${t.date}</span><b>${t.desc.substring(0,20)}</b></div>
         <div><b>$${Math.abs(t.amount).toFixed(2)}</b><button onclick="deleteItem(${i})" class="btn-del">×</button></div>
       </div>`;
-      if(boxes[t.type]) {
-        boxes[t.type].innerHTML += row;
-        totals[t.type] += Math.abs(t.amount);
-      }
+      if(boxes[t.type]) { boxes[t.type].innerHTML += row; totals[t.type] += Math.abs(t.amount); }
     });
 
     document.getElementById('ti').innerText = `$${totals.INGRESO.toFixed(2)}`;
     document.getElementById('th').innerText = `$${totals.HOGAR.toFixed(2)}`;
     document.getElementById('ts').innerText = `$${totals.SUBS.toFixed(2)}`;
     document.getElementById('te').innerText = `$${totals.VARIO.toFixed(2)}`;
-    localStorage.setItem('wallet_blindada_v1', JSON.stringify(db));
+
+    // Lógica de Límites
+    const ls = parseFloat(document.getElementById('limS').value) || 0;
+    const lh = parseFloat(document.getElementById('limH').value) || 0;
+    document.getElementById('col-subs').className = 'column' + (totals.SUBS > ls ? ' over-limit' : '');
+    document.getElementById('col-house').className = 'column' + (totals.HOGAR > lh ? ' over-limit' : '');
+
+    localStorage.setItem('wallet_universal_v1', JSON.stringify(db));
   }
 
   function deleteItem(i) { db.splice(i, 1); render(); }
-  
   render();
 </script>
 </body>

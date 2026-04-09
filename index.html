@@ -3,9 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Billetera PRO - Fixed</title>
-  <!-- LIBRERÍA DE GRÁFICAS (Asegurada) -->
+  <title>Billetera Guardian PRO - Final</title>
+  
+  <!-- 1. Cargamos la librería primero que nada -->
   <script src="https://jsdelivr.net"></script>
+
   <style>
     :root { --bg: #fdfbfb; --card: #ffffff; --income: #c1e1c1; --house: #bcd4e6; --subs: #fbc4ab; --expense: #ffb3ba; --text: #4a4a4a; --accent: #b19cd9; --alert: #e63946; }
     body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 15px; margin: 0; }
@@ -14,10 +16,10 @@
     .limit-bar { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px; display: flex; justify-content: center; align-items: center; gap: 20px; font-size: 13px; font-weight: bold; flex-wrap: wrap; }
     .limit-bar input { width: 70px; padding: 5px; border: 1px solid #ddd; border-radius: 5px; color: var(--accent); }
 
-    /* Layout Corregido */
-    .dashboard-top { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
+    /* Layout para que la gráfica tenga espacio real */
+    .dashboard-top { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; align-items: stretch; }
     .stats-grid { flex: 2; display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; min-width: 300px; }
-    .chart-container { flex: 1; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); min-width: 250px; max-height: 250px; display: flex; justify-content: center; }
+    .chart-container { flex: 1; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); min-width: 280px; min-height: 250px; position: relative; }
 
     .stat-card { background: var(--card); padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-bottom: 5px solid #ddd; }
     .stat-val { font-size: 22px; font-weight: bold; margin-top: 5px; }
@@ -42,12 +44,13 @@
       .actions-panel, .limit-bar, .btn-del, .btn-move, button, .btn-upload, #busq { display: none !important; }
       .chart-container { display: block !important; }
     }
+    @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h1 style="text-align:center; color: var(--accent); font-weight: 800; margin-bottom: 10px;">Billetera PRO</h1>
+  <h1 style="text-align:center; color: var(--accent); font-weight: 800; margin-bottom: 10px;">Billetera Guardian PRO</h1>
 
   <div class="limit-bar">
     <div>Límite Subs: <input type="number" id="limS" value="100" oninput="render()"> <span id="warnS"></span></div>
@@ -59,10 +62,10 @@
 
   <div class="dashboard-top">
     <div class="stats-grid">
-      <div class="stat-card" style="border-color: var(--income)">Ingresos<div id="ti" class="stat-val">$0.00</div></div>
+      <div class="stat-card" id="c-inc" style="border-color: var(--income)">Ingresos<div id="ti" class="stat-val">$0.00</div></div>
       <div id="card-h" class="stat-card" style="border-color: var(--house)">Hogar<div id="th" class="stat-val">$0.00</div></div>
       <div id="card-s" class="stat-card" style="border-color: var(--subs)">Suscripciones<div id="ts" class="stat-val">$0.00</div></div>
-      <div class="stat-card" style="border-color: var(--expense)">Otros Gastos<div id="te" class="stat-val">$0.00</div></div>
+      <div class="stat-card" id="c-var" style="border-color: var(--expense)">Otros Gastos<div id="te" class="stat-val">$0.00</div></div>
     </div>
     <div class="chart-container">
       <canvas id="miGrafica"></canvas>
@@ -118,8 +121,8 @@
       const lines = evt.target.result.split('\n');
       const headers = lines[0].toLowerCase().split(',').map(h => h.trim().replace(/"/g, ''));
       const iDate = headers.findIndex(h => h.includes('date') || h.includes('fecha'));
-      const iDesc = headers.findIndex(h => h.includes('desc') || h.includes('name') || h.includes('memo'));
-      const iAmt = headers.findIndex(h => h.includes('amount') || h.includes('monto') || h.includes('total'));
+      const iDesc = headers.findIndex(h => h.includes('desc') || h.includes('name'));
+      const iAmt = headers.findIndex(h => h.includes('amount') || h.includes('monto'));
 
       for (let i = 1; i < lines.length; i++) {
         const row = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
@@ -129,10 +132,6 @@
             let desc = row[iDesc]?.replace(/"/g, '') || 'Transacción';
             let dL = desc.toLowerCase().trim();
             let type = memoriaCats[dL] || (rawAmt >= 0 ? "INGRESO" : "VARIO");
-            if(!memoriaCats[dL]){
-                if(['netflix','spotify','apple','icloud','disney','amazon','klarna','affirm','dave'].some(k=>dL.includes(k)) && !dL.includes('eats')) type="SUBS";
-                else if(['rent','peco','insurance','utility','t-mobile','metro','zelle','lease'].some(k=>dL.includes(k))) type="HOGAR";
-            }
             db.push({ date: row[iDate]?.replace(/"/g, '') || 'S/F', desc: desc, amount: rawAmt, type: type });
           }
         }
@@ -174,20 +173,27 @@
   }
 
   function actualizarGrafica(t) {
-    const ctx = document.getElementById('miGrafica');
-    if (!ctx) return;
+    const canvas = document.getElementById('miGrafica');
+    if (!canvas || typeof Chart === 'undefined') return;
+
     const data = [t.HOGAR, t.SUBS, t.VARIO];
+    
     if (chartInstance) {
       chartInstance.data.datasets[0].data = data;
       chartInstance.update();
     } else {
-      chartInstance = new Chart(ctx, {
+      chartInstance = new Chart(canvas, {
         type: 'doughnut',
         data: {
           labels: ['Hogar', 'Subs', 'Otros'],
           datasets: [{ data: data, backgroundColor: ['#bcd4e6', '#fbc4ab', '#ffb3ba'], borderWidth: 0 }]
         },
-        options: { plugins: { legend: { position: 'bottom' } }, cutout: '70%', maintainAspectRatio: false }
+        options: { 
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom' } },
+          cutout: '65%' 
+        }
       });
     }
   }
@@ -207,7 +213,9 @@
 
   function imprimirPDF() { window.print(); }
   function del(i) { if(confirm('¿Eliminar?')) { db.splice(i, 1); render(); } }
-  render();
+
+  // Esperar un momento a que la librería cargue
+  window.onload = () => { setTimeout(render, 500); };
 </script>
 </body>
 </html>

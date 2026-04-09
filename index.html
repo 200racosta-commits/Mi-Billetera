@@ -3,31 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Billetera Guardian Universal</title>
+  <title>Billetera Digital V2</title>
   <style>
-    :root { --bg: #fdfbfb; --card: #ffffff; --income: #c1e1c1; --house: #bcd4e6; --subs: #fbc4ab; --expense: #ffb3ba; --text: #4a4a4a; --accent: #b19cd9; --alert: #ff6b6b; }
+    :root { --bg: #fdfbfb; --card: #ffffff; --income: #c1e1c1; --house: #bcd4e6; --subs: #fbc4ab; --expense: #ffb3ba; --text: #4a4a4a; --accent: #b19cd9; --alert: #e63946; }
     body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 15px; margin: 0; }
     .container { max-width: 1200px; margin: 0 auto; }
     
     .limit-bar { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px; display: flex; justify-content: center; align-items: center; gap: 20px; font-size: 13px; font-weight: bold; flex-wrap: wrap; }
-    .limit-bar input { width: 80px; padding: 5px; border: 1px solid #ddd; border-radius: 5px; color: var(--accent); }
+    .limit-bar input { width: 70px; padding: 5px; border: 1px solid #ddd; border-radius: 5px; color: var(--accent); }
 
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
-    .stat-card { background: var(--card); padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-bottom: 5px solid #ddd; transition: 0.3s; border-right: 5px solid transparent; }
+    .stat-card { background: var(--card); padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-bottom: 5px solid #ddd; transition: 0.3s; }
     .stat-val { font-size: 24px; font-weight: bold; margin-top: 5px; }
+
+    /* Estilo de Alerta Crítica */
+    .over-limit { border-color: var(--alert) !important; background: #fff0f0 !important; transform: scale(1.02); }
+    .over-limit .stat-val { color: var(--alert); animation: pulse 2s infinite; }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
 
     .actions-panel { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 25px; text-align: center; }
     input, select { padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin: 5px; outline: none; }
-    .btn-upload { background: var(--accent); color: white; padding: 12px 30px; border-radius: 30px; font-weight: bold; cursor: pointer; display: inline-block; margin-top: 10px; box-shadow: 0 4px 10px rgba(177, 156, 217, 0.3); }
+    .btn-upload { background: var(--accent); color: white; padding: 12px 30px; border-radius: 30px; font-weight: bold; cursor: pointer; display: inline-block; margin-top: 10px; }
 
     .main-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
-    .column { background: var(--card); border-radius: 15px; height: 500px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 2px solid transparent; transition: 0.3s; }
+    .column { background: var(--card); border-radius: 15px; height: 550px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 2px solid transparent; transition: 0.3s; }
     .col-header { padding: 12px; text-align: center; color: white; font-weight: bold; font-size: 11px; text-transform: uppercase; }
     .scroll-area { overflow-y: auto; flex-grow: 1; padding: 10px; }
     
     .item-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f5f5f5; font-size: 12px; align-items: center; }
-    .btn-del { color: #ddd; cursor: pointer; font-weight: bold; border: none; background: none; font-size: 14px; }
-    .over-limit { border-color: var(--alert) !important; background: #fff5f5 !important; }
+    .btn-del { color: #ccc; cursor: pointer; border: none; background: none; font-size: 16px; margin-left: 5px; }
+    .btn-move { color: var(--accent); cursor: pointer; border: none; background: none; font-size: 14px; }
 
     @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
   </style>
@@ -38,10 +43,10 @@
   <h1 style="text-align:center; color: var(--accent); font-weight: 800; margin-bottom: 10px;">Billetera Guardian PRO</h1>
 
   <div class="limit-bar">
-    <div>Límite Subs: $ <input type="number" id="limS" value="100" oninput="render()"></div>
-    <div>Límite Hogar: $ <input type="number" id="limH" value="1500" oninput="render()"></div>
+    <div>Límite Subs: <input type="number" id="limS" value="100" oninput="render()"> <span id="warnS"></span></div>
+    <div>Límite Hogar: <input type="number" id="limH" value="1500" oninput="render()"> <span id="warnH"></span></div>
     <div style="border-left: 1px solid #eee; padding-left: 15px;">
-        🔍 <input type="text" id="busq" placeholder="Buscar nombre o monto..." oninput="render()" style="width: 180px;">
+        🔍 <input type="text" id="busq" placeholder="Buscar..." oninput="render()" style="width: 150px;">
     </div>
   </div>
 
@@ -54,19 +59,16 @@
 
   <div class="actions-panel">
     <input type="text" id="m-desc" placeholder="Descripción manual">
-    <input type="number" id="m-amt" placeholder="Monto" style="width: 100px;">
+    <input type="number" id="m-amt" placeholder="Monto" style="width: 80px;">
     <select id="m-type">
       <option value="INGRESO">💰 Ingreso</option>
       <option value="HOGAR">🏠 Hogar</option>
       <option value="SUBS">📺 Suscripción</option>
       <option value="VARIO">🛍️ Otros</option>
     </select>
-    <button onclick="addManual()" style="padding:10px 20px; background:var(--accent); color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">+ Añadir</button>
+    <button onclick="addManual()" style="padding:10px 20px; background:var(--accent); color:white; border:none; border-radius:8px; cursor:pointer;">+ Añadir</button>
     <br>
-    <label class="btn-upload">
-      📥 CARGAR CSV
-      <input type="file" id="fIn" accept=".csv" style="display:none">
-    </label>
+    <label class="btn-upload">📥 CARGAR CSV <input type="file" id="fIn" accept=".csv" style="display:none"></label>
     <button onclick="if(confirm('¿Borrar todo?')){localStorage.clear(); location.reload();}" style="background:none; border:none; color:#ccc; cursor:pointer; font-size:11px; margin-left:20px;">Reiniciar Mes</button>
   </div>
 
@@ -94,7 +96,6 @@
     const reader = new FileReader();
     reader.onload = function(evt) {
       const lines = evt.target.result.split('\n');
-      if (lines.length < 2) return;
       const headers = lines[0].toLowerCase().split(',').map(h => h.trim().replace(/"/g, ''));
       const iDate = headers.findIndex(h => h.includes('date') || h.includes('fecha'));
       const iDesc = headers.findIndex(h => h.includes('desc') || h.includes('name') || h.includes('memo') || h.includes('concepto'));
@@ -109,9 +110,17 @@
             let desc = row[iDesc]?.replace(/"/g, '') || 'Banco';
             let type = rawAmt >= 0 ? "INGRESO" : "VARIO";
             const dL = desc.toLowerCase();
-            const subsK = ['netflix','spotify','disney','apple','icloud','amazon','gym','canva','hbo','klarna','affirm','afterpay','dave'];
-            if(subsK.some(kw => dL.includes(kw))) type = "SUBS";
-            else if (dL.includes('rent') || dL.includes('peco') || dL.includes('insurance') || dL.includes('utility') || dL.includes('t-mobile') || dL.includes('metro')) type = "HOGAR";
+
+            // CEREBRO REFINADO
+            const subsKeywords = ['netflix','spotify','disney','apple','icloud','amazon','gym','canva','hbo','klarna','affirm','afterpay','dave','membership'];
+            const houseKeywords = ['rent','peco','insurance','utility','t-mobile','metro','zelle renta','lease','electric','water','gas'];
+
+            if(subsKeywords.some(kw => dL.includes(kw)) && !dL.includes('eats')) {
+                type = "SUBS";
+            } else if (houseKeywords.some(kw => dL.includes(kw))) {
+                type = "HOGAR";
+            }
+            
             db.push({ date: row[iDate]?.replace(/"/g, '') || 'S/F', desc: desc, amount: rawAmt, type: type });
             count++;
           }
@@ -136,25 +145,47 @@
         totals[it.type] += Math.abs(it.amount);
         const row = document.createElement('div');
         row.className = 'item-row';
-        row.innerHTML = `<div><b>${it.desc}</b><br><small>${it.date}</small></div><div>$${Math.abs(it.amount).toFixed(2)} <button class="btn-del" onclick="del(${idx})">×</button></div>`;
+        row.innerHTML = `
+          <div style="flex:1"><b>${it.desc}</b><br><small>${it.date}</small></div>
+          <div style="text-align:right">
+            $${Math.abs(it.amount).toFixed(2)}<br>
+            <span class="btn-move" onclick="move(${idx})" title="Cambiar categoría">🔄</span>
+            <span class="btn-del" onclick="del(${idx})">×</span>
+          </div>`;
         boxes[it.type].appendChild(row);
       }
     });
 
-    document.getElementById('ti').innerText = `$${totals.INGRESO.toFixed(2)}`;
-    document.getElementById('th').innerText = `$${totals.HOGAR.toFixed(2)}`;
-    document.getElementById('ts').innerText = `$${totals.SUBS.toFixed(2)}`;
-    document.getElementById('te').innerText = `$${totals.VARIO.toFixed(2)}`;
+    // Actualizar números
+    ['ti','th','ts','te'].forEach((id, i) => {
+      const val = Object.values(totals)[i];
+      document.getElementById(id).innerText = `$${val.toFixed(2)}`;
+    });
 
-    // Alertas
-    const lH = parseFloat(document.getElementById('limH').value) || 0, lS = parseFloat(document.getElementById('limS').value) || 0;
-    document.getElementById('card-h').classList.toggle('over-limit', totals.HOGAR > lH);
-    document.getElementById('col-h').classList.toggle('over-limit', totals.HOGAR > lH);
-    document.getElementById('card-s').classList.toggle('over-limit', totals.SUBS > lS);
-    document.getElementById('col-s').classList.toggle('over-limit', totals.SUBS > lS);
+    // Lógica de Alertas Visuales
+    const lH = parseFloat(document.getElementById('limH').value) || 0;
+    const lS = parseFloat(document.getElementById('limS').value) || 0;
+
+    const checkLimit = (total, limit, cardId, colId, warnId) => {
+      const isOver = total > limit && limit > 0;
+      document.getElementById(cardId).classList.toggle('over-limit', isOver);
+      document.getElementById(colId).classList.toggle('over-limit', isOver);
+      document.getElementById(warnId).innerText = isOver ? "⚠️ EXCEDIDO" : "";
+      document.getElementById(warnId).style.color = "red";
+    };
+
+    checkLimit(totals.HOGAR, lH, 'card-h', 'col-h', 'warnH');
+    checkLimit(totals.SUBS, lS, 'card-s', 'col-s', 'warnS');
   }
 
-  function del(i) { db.splice(i, 1); render(); }
+  function move(idx) {
+    const types = ["INGRESO", "HOGAR", "SUBS", "VARIO"];
+    let current = types.indexOf(db[idx].type);
+    db[idx].type = types[(current + 1) % types.length];
+    render();
+  }
+
+  function del(i) { if(confirm('¿Eliminar?')) { db.splice(i, 1); render(); } }
   render();
 </script>
 </body>

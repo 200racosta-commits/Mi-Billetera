@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Billetera Guardian PRO - Memoria Inteligente</title>
+  <title>Billetera Guardian PRO - Reporte PDF</title>
   <style>
     :root { --bg: #fdfbfb; --card: #ffffff; --income: #c1e1c1; --house: #bcd4e6; --subs: #fbc4ab; --expense: #ffb3ba; --text: #4a4a4a; --accent: #b19cd9; --alert: #e63946; }
     body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 15px; margin: 0; }
@@ -16,7 +16,7 @@
     .stat-card { background: var(--card); padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-bottom: 5px solid #ddd; transition: 0.3s; }
     .stat-val { font-size: 24px; font-weight: bold; margin-top: 5px; }
 
-    .over-limit { border-color: var(--alert) !important; background: #fff0f0 !important; transform: scale(1.01); }
+    .over-limit { border-color: var(--alert) !important; background: #fff0f0 !important; }
     .over-limit .stat-val { color: var(--alert); }
 
     .actions-panel { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 25px; text-align: center; }
@@ -32,6 +32,16 @@
     .item-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f5f5f5; font-size: 11px; align-items: center; }
     .btn-del { color: #ccc; cursor: pointer; border: none; background: none; font-size: 16px; }
     .btn-move { color: #3498db; cursor: pointer; border: none; background: none; font-size: 14px; margin-right: 5px; }
+
+    /* --- ESTILO DE IMPRESIÓN (PASO 3) --- */
+    @media print {
+      .actions-panel, .limit-bar, .btn-del, .btn-move, button, .btn-upload, #busq { display: none !important; }
+      .column { height: auto !important; overflow: visible !important; border: 1px solid #eee !important; }
+      .main-grid { grid-template-columns: repeat(4, 1fr) !important; display: grid !important; gap: 5px; }
+      body { background: white; padding: 0; }
+      .container { max-width: 100%; }
+      .stat-card { box-shadow: none; border: 1px solid #eee; }
+    }
 
     @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
   </style>
@@ -50,10 +60,10 @@
   </div>
 
   <div class="stats-grid">
-    <div class="stat-card" style="border-color: var(--income)">Ingresos<div id="ti" class="stat-val">$0.00</div></div>
+    <div class="stat-card" id="card-i" style="border-color: var(--income)">Ingresos<div id="ti" class="stat-val">$0.00</div></div>
     <div id="card-h" class="stat-card" style="border-color: var(--house)">Hogar<div id="th" class="stat-val">$0.00</div></div>
     <div id="card-s" class="stat-card" style="border-color: var(--subs)">Suscripciones<div id="ts" class="stat-val">$0.00</div></div>
-    <div class="stat-card" style="border-color: var(--expense)">Otros Gastos<div id="te" class="stat-val">$0.00</div></div>
+    <div class="stat-card" id="card-o" style="border-color: var(--expense)">Otros Gastos<div id="te" class="stat-val">$0.00</div></div>
   </div>
 
   <div class="actions-panel">
@@ -69,7 +79,8 @@
     <br>
     <label class="btn-upload">📥 CARGAR CSV <input type="file" id="fIn" accept=".csv" style="display:none"></label>
     <div style="margin-top: 15px;">
-        <button onclick="descargarJSON()" style="background:#eee; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; font-size:11px;">💾 Guardar Respaldo</button>
+        <button onclick="descargarExcel()" style="background:#eee; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; font-size:11px;">💾 Guardar Excel</button>
+        <button onclick="imprimirPDF()" style="background:#eee; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; font-size:11px; margin-left:10px;">🖨️ Exportar PDF</button>
         <button onclick="if(confirm('¿Borrar todo?')){localStorage.clear(); location.reload();}" style="background:none; border:none; color:#ccc; cursor:pointer; font-size:11px; margin-left:15px;">Reiniciar Mes</button>
     </div>
   </div>
@@ -111,7 +122,6 @@
       const iDesc = headers.findIndex(h => h.includes('desc') || h.includes('name') || h.includes('memo'));
       const iAmt = headers.findIndex(h => h.includes('amount') || h.includes('monto') || h.includes('total'));
 
-      let count = 0;
       for (let i = 1; i < lines.length; i++) {
         const row = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
         if (row.length > 1 && iAmt !== -1) {
@@ -119,22 +129,19 @@
           if (!isNaN(rawAmt)) {
             let desc = row[iDesc]?.replace(/"/g, '') || 'Transacción';
             let dL = desc.toLowerCase().trim();
-            
-            // Lógica de Memoria vs Automática
             let type = memoriaCats[dL] || (rawAmt >= 0 ? "INGRESO" : "VARIO");
+            
             if (!memoriaCats[dL]) {
-                const subsK = ['netflix','spotify','apple','icloud','disney','amazon','klarna','affirm','dave','membership','canva'];
-                const houseK = ['rent','peco','insurance','utility','t-mobile','metro','zelle','lease','electric','water','gas','att'];
+                const subsK = ['netflix','spotify','apple','icloud','disney','amazon','klarna','affirm','dave'];
+                const houseK = ['rent','peco','insurance','utility','t-mobile','metro','zelle','lease','electric'];
                 if(subsK.some(kw => dL.includes(kw)) && !dL.includes('eats')) type = "SUBS";
                 else if (houseK.some(kw => dL.includes(kw))) type = "HOGAR";
             }
             db.push({ date: row[iDate]?.replace(/"/g, '') || 'S/F', desc: desc, amount: rawAmt, type: type });
-            count++;
           }
         }
       }
       render();
-      alert("Cargadas " + count + " transacciones.");
     };
     reader.readAsText(e.target.files[0]);
   });
@@ -143,7 +150,6 @@
     localStorage.setItem('wallet_universal_v1', JSON.stringify(db));
     const boxes = { INGRESO: document.getElementById('box-in'), HOGAR: document.getElementById('box-h'), SUBS: document.getElementById('box-s'), VARIO: document.getElementById('box-o') };
     Object.values(boxes).forEach(b => b.innerHTML = '');
-    
     let totals = { INGRESO: 0, HOGAR: 0, SUBS: 0, VARIO: 0 };
     const term = document.getElementById('busq').value.toLowerCase();
 
@@ -163,48 +169,33 @@
       }
     });
 
-    // Actualizar Totales
     document.getElementById('ti').innerText = `$${totals.INGRESO.toFixed(2)}`;
     document.getElementById('th').innerText = `$${totals.HOGAR.toFixed(2)}`;
     document.getElementById('ts').innerText = `$${totals.SUBS.toFixed(2)}`;
     document.getElementById('te').innerText = `$${totals.VARIO.toFixed(2)}`;
 
-    // Alertas
     const lH = parseFloat(document.getElementById('limH').value) || 0, lS = parseFloat(document.getElementById('limS').value) || 0;
-    const alertH = totals.HOGAR > lH;
-    const alertS = totals.SUBS > lS;
-
-    document.getElementById('card-h').classList.toggle('over-limit', alertH);
-    document.getElementById('col-h').classList.toggle('over-limit', alertH);
-    document.getElementById('warnH').innerText = alertH ? "⚠️ EXCEDIDO" : "";
-    document.getElementById('warnH').style.color = "red";
-
-    document.getElementById('card-s').classList.toggle('over-limit', alertS);
-    document.getElementById('col-s').classList.toggle('over-limit', alertS);
-    document.getElementById('warnS').innerText = alertS ? "⚠️ EXCEDIDO" : "";
-    document.getElementById('warnS').style.color = "red";
+    document.getElementById('card-h').classList.toggle('over-limit', totals.HOGAR > lH);
+    document.getElementById('card-s').classList.toggle('over-limit', totals.SUBS > lS);
+    document.getElementById('warnH').innerText = totals.HOGAR > lH ? "⚠️ EXCEDIDO" : "";
+    document.getElementById('warnS').innerText = totals.SUBS > lS ? "⚠️ EXCEDIDO" : "";
   }
 
   function cambiarCat(idx) {
     const opts = ["INGRESO", "HOGAR", "SUBS", "VARIO"];
-    const r = prompt("Mover a:\n1. Ingresos\n2. Hogar\n3. Subscripciones\n4. Otros", "1");
-    if(r >= 1 && r <= 4) {
-        db[idx].type = opts[r-1];
-        aprender(db[idx].desc, opts[r-1]); // Aquí el cerebro aprende
-        render();
-    }
+    const r = prompt("1.Ingresos 2.Hogar 3.Subs 4.Otros", "1");
+    if(r >= 1 && r <= 4) { db[idx].type = opts[r-1]; aprender(db[idx].desc, opts[r-1]); render(); }
   }
 
-  function descargarJSON() {
-    const data = JSON.stringify(db, null, 2);
-    const blob = new Blob([data], {type: 'application/json'});
+  function descargarExcel() {
+    let csv = "Fecha,Descripcion,Monto,Categoria\n";
+    db.forEach(it => { csv += `${it.date},${it.desc.replace(/,/g,'')},${Math.abs(it.amount).toFixed(2)},${it.type}\n`; });
+    const blob = new Blob([csv], {type:'text/csv'});
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Billetera_${new Date().getMonth()+1}.json`;
-    a.click();
+    const a = document.createElement('a'); a.href = url; a.download = 'Reporte_Billetera.csv'; a.click();
   }
 
+  function imprimirPDF() { window.print(); }
   function del(i) { if(confirm('¿Eliminar?')) { db.splice(i, 1); render(); } }
   render();
 </script>

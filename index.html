@@ -2,80 +2,80 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Billetera Guardian PRO</title>
-  <script src="https://jsdelivr.net"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Billetera Simple Pro</title>
   <style>
-    :root { --bg: #fdfbfb; --card: #ffffff; --income: #c1e1c1; --house: #bcd4e6; --subs: #fbc4ab; --expense: #ffb3ba; --text: #555; --accent: #b19cd9; }
-    body { font-family: sans-serif; background: var(--bg); color: var(--text); padding: 15px; margin:0; }
-    .container { max-width: 1000px; margin: 0 auto; }
-    .dashboard { display: grid; grid-template-columns: 1fr 300px; gap: 20px; margin-bottom: 20px; }
-    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .stat-card { background: var(--card); padding: 15px; border-radius: 12px; text-align: center; border-bottom: 4px solid #ddd; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-    .chart-box { background: var(--card); border-radius: 12px; padding: 15px; display: flex; align-items: center; justify-content: center; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-    .config { background: #fff; padding: 10px; border-radius: 10px; margin-bottom: 20px; text-align: center; border: 1px solid #eee; font-size: 12px; }
-    .config input { width: 60px; padding: 4px; border: 1px solid #ddd; border-radius: 4px; }
+    :root { --bg: #fdfbfb; --card: #ffffff; --income: #c1e1c1; --house: #bcd4e6; --subs: #fbc4ab; --expense: #ffb3ba; --text: #4a4a4a; --accent: #b19cd9; }
+    body { font-family: sans-serif; background: var(--bg); color: var(--text); padding: 15px; margin: 0; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    
+    /* Totales arriba */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+    .stat-card { background: var(--card); padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-bottom: 5px solid #ddd; }
+    .stat-val { font-size: 24px; font-weight: bold; margin-top: 5px; }
+
+    /* Formulario y Carga */
+    .actions-panel { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 25px; text-align: center; }
+    input, select { padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin: 5px; outline: none; }
+    .btn-add { background: var(--accent); color: white; border: none; padding: 10px 25px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    .btn-upload { background: #555; color: white; padding: 12px 30px; border-radius: 30px; font-weight: bold; cursor: pointer; display: inline-block; margin-top: 15px; }
+
+    /* 4 Columnas */
     .main-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
-    .column { background: var(--card); border-radius: 12px; height: 450px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-    .col-header { padding: 10px; text-align: center; color: white; font-weight: bold; font-size: 11px; letter-spacing: 1px; }
-    .scroll { overflow-y: auto; flex-grow: 1; padding: 5px; }
-    .item { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #f9f9f9; font-size: 11px; align-items: center; }
-    .btn-del { color: #ddd; cursor: pointer; font-weight: bold; margin-left: 5px; font-size: 14px; }
-    @media (max-width: 800px) { .main-grid { grid-template-columns: 1fr 1fr; } .dashboard { grid-template-columns: 1fr; } }
+    .column { background: var(--card); border-radius: 15px; height: 500px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .col-header { padding: 12px; text-align: center; color: white; font-weight: bold; font-size: 12px; letter-spacing: 1px; }
+    .scroll-area { overflow-y: auto; flex-grow: 1; padding: 10px; }
+    
+    .item-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f5f5f5; font-size: 12px; }
+    .item-date { font-size: 10px; color: #aaa; display: block; }
+    .btn-del { color: #ddd; cursor: pointer; font-weight: bold; border: none; background: none; }
+    .btn-del:hover { color: #ff6b6b; }
+
+    @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h2 style="text-align:center; color: var(--accent); font-weight: 800;">Billetera Guardian PRO</h2>
+  <h1 style="text-align:center; color: var(--accent);">Mi Billetera Inteligente</h1>
 
-  <div class="config">
-    Límite Suscripciones: $<input type="number" id="limS" value="100" oninput="updateUI()"> | 
-    Límite Hogar: $<input type="number" id="limH" value="1500" oninput="updateUI()">
+  <div class="stats-grid">
+    <div class="stat-card" style="border-color: var(--income)">Ingresos<div id="ti" class="stat-val">$0.00</div></div>
+    <div class="stat-card" style="border-color: var(--house)">Hogar<div id="th" class="stat-val">$0.00</div></div>
+    <div class="stat-card" style="border-color: var(--subs)">Suscripciones<div id="ts" class="stat-val">$0.00</div></div>
+    <div class="stat-card" style="border-color: var(--expense)">Otros Gastos<div id="te" class="stat-val">$0.00</div></div>
   </div>
 
-  <div class="dashboard">
-    <div class="stat-grid">
-      <div class="stat-card" style="border-color: var(--income)">Ingresos<div id="val-in" style="font-weight:bold; font-size: 20px;">$0.00</div></div>
-      <div class="stat-card" id="card-h" style="border-color: var(--house)">Hogar<div id="val-h" style="font-weight:bold; font-size: 20px;">$0.00</div></div>
-      <div class="stat-card" id="card-s" style="border-color: var(--subs)">Subs<div id="val-s" style="font-weight:bold; font-size: 20px;">$0.00</div></div>
-      <div class="stat-card" style="border-color: var(--expense)">Otros<div id="val-o" style="font-weight:bold; font-size: 20px;">$0.00</div></div>
+  <div class="actions-panel">
+    <div style="margin-bottom: 15px;">
+      <input type="text" id="m-desc" placeholder="¿Qué gastaste?">
+      <input type="number" id="m-amt" placeholder="Monto" style="width: 100px;">
+      <select id="m-type">
+        <option value="INGRESO">💰 Ingreso</option>
+        <option value="HOGAR">🏠 Hogar</option>
+        <option value="SUBS">📺 Suscripción</option>
+        <option value="VARIO">🛍️ Otros</option>
+      </select>
+      <button class="btn-add" onclick="addManual()">Añadir</button>
     </div>
-    <div class="chart-box">
-      <canvas id="chartCanvas" width="180" height="180"></canvas>
-      <div id="percentText" style="position:absolute; font-weight:900; font-size:24px;">0%</div>
-    </div>
-  </div>
-
-  <div style="text-align:center; margin-bottom: 20px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-    <input type="text" id="m-desc" placeholder="Descripción" style="padding:8px; border:1px solid #ddd; border-radius:5px;">
-    <input type="number" id="m-amt" placeholder="Monto" style="padding:8px; width:80px; border:1px solid #ddd; border-radius:5px;">
-    <select id="m-type" style="padding:8px; border:1px solid #ddd; border-radius:5px;">
-      <option value="INGRESO">💰 Ingreso</option>
-      <option value="HOGAR">🏠 Hogar</option>
-      <option value="SUBS">📺 Subs</option>
-      <option value="VARIO">🛍️ Otros</option>
-    </select>
-    <button onclick="addManual()" style="padding:8px 20px; background:var(--accent); color:white; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">+ Añadir</button>
-  </div>
-
-  <div style="text-align:center; margin-bottom: 30px;">
-    <label style="background:var(--accent); color:white; padding: 12px 35px; border-radius: 25px; cursor:pointer; font-weight:bold; box-shadow: 0 4px 10px rgba(177, 156, 217, 0.3);">
-      📥 SUBIR ARCHIVO CHASE <input type="file" id="fileInput" accept=".csv" style="display:none">
+    
+    <label class="btn-upload">
+      ➕ CARGAR ARCHIVO DEL BANCO (CSV)
+      <input type="file" id="fIn" accept=".csv" style="display:none">
     </label>
-    <button onclick="localStorage.clear(); location.reload();" style="margin-left:15px; background:none; border:none; color:#bbb; cursor:pointer; font-size:11px;">Reiniciar Todo</button>
+    <button onclick="if(confirm('¿Borrar todo?')){localStorage.clear(); location.reload();}" style="background:none; border:none; color:#ccc; cursor:pointer; font-size:11px; margin-left:20px;">Reiniciar Mes</button>
   </div>
 
   <div class="main-grid">
-    <div class="column"><div class="col-header" style="background:var(--income)">💰 INGRESOS</div><div class="scroll" id="box-in"></div></div>
-    <div class="column"><div class="col-header" style="background:var(--house)">🏠 HOGAR</div><div class="scroll" id="box-h"></div></div>
-    <div class="column"><div class="col-header" style="background:var(--subs)">📺 SUBS</div><div class="scroll" id="box-s"></div></div>
-    <div class="column"><div class="col-header" style="background:var(--expense)">🛍️ OTROS</div><div class="scroll" id="box-o"></div></div>
+    <div class="column"><div class="col-header" style="background:var(--income)">INGRESOS</div><div class="scroll-area" id="box-in"></div></div>
+    <div class="column"><div class="col-header" style="background:var(--house)">HOGAR</div><div class="scroll-area" id="box-h"></div></div>
+    <div class="column"><div class="col-header" style="background:var(--subs)">SUBSCRIPCIONES</div><div class="scroll-area" id="box-s"></div></div>
+    <div class="column"><div class="col-header" style="background:var(--expense)">OTROS</div><div class="scroll-area" id="box-o"></div></div>
   </div>
 </div>
 
 <script>
-  let db = JSON.parse(localStorage.getItem('wallet_final_v1')) || [];
-  let chart = null;
+  let db = JSON.parse(localStorage.getItem('wallet_blindada_v1')) || [];
 
   function addManual() {
     const d = document.getElementById('m-desc').value;
@@ -83,88 +83,72 @@
     const t = document.getElementById('m-type').value;
     if(d && !isNaN(a)) {
       db.push({ date: new Date().toLocaleDateString(), desc: d, amount: t === "INGRESO" ? Math.abs(a) : -Math.abs(a), type: t });
-      updateUI();
+      render();
       document.getElementById('m-desc').value = ''; document.getElementById('m-amt').value = '';
     }
   }
 
-  document.getElementById('fileInput').addEventListener('change', function(e) {
+  document.getElementById('fIn').addEventListener('change', function(e) {
     const reader = new FileReader();
     reader.onload = function(evt) {
       const lines = evt.target.result.split('\n');
-      // Chase headers: Details,Posting Date,Description,Amount,Type...
+      let count = 0;
+
       for (let i = 1; i < lines.length; i++) {
-        const c = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-        if (c.length > 4) {
-          let a = parseFloat(c[3]?.replace(/[$\s"]/g, '').replace(/,/g, '')); // Columna 3 es Amount
-          if (!isNaN(a)) {
-            let d = c[2]?.replace(/"/g, '') || 'Detalle'; // Columna 2 es Description
-            let type = a >= 0 ? "INGRESO" : "VARIO";
-            const lowD = d.toLowerCase();
+        // Regex para separar por comas respetando las comas dentro de comillas
+        const row = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+        
+        if (row.length >= 4) {
+          // Según tu foto: col 1=Date, col 2=Desc, col 3=Amount
+          let rawDate = row[1]?.replace(/"/g, '');
+          let rawDesc = row[2]?.replace(/"/g, '');
+          let rawAmt = parseFloat(row[3]?.replace(/[$\s"]/g, '').replace(/,/g, ''));
+
+          if (!isNaN(rawAmt)) {
+            let type = rawAmt >= 0 ? "INGRESO" : "VARIO";
+            const dLow = rawDesc.toLowerCase();
             const subs = ['netflix','spotify','disney','apple','icloud','amazon','gym','canva','hbo','klarna','affirm','afterpay','sc'];
-            if(subs.some(kw => lowD.includes(kw))) type = "SUBS";
-            else if (lowD.includes('rent') || lowD.includes('peco') || lowD.includes('insurance')) type = "HOGAR";
-            db.push({ date: c[1] || 'S/F', desc: d, amount: a, type: type }); // Columna 1 es Posting Date
+            
+            if(subs.some(kw => dLow.includes(kw))) type = "SUBS";
+            else if (dLow.includes('rent') || dLow.includes('peco') || dLow.includes('insurance') || dLow.includes('utility')) type = "HOGAR";
+            
+            db.push({ date: rawDate, desc: rawDesc, amount: rawAmt, type: type });
+            count++;
           }
         }
       }
-      updateUI();
-      alert("¡Archivo de Chase cargado!");
+      render();
+      alert("¡Se cargaron " + count + " transacciones con éxito!");
     };
-    reader.readAsText(e.target.files);
+    reader.readAsText(e.target.files[0]);
   });
 
-  function updateUI() {
+  function render() {
     const boxes = { INGRESO: document.getElementById('box-in'), HOGAR: document.getElementById('box-h'), SUBS: document.getElementById('box-s'), VARIO: document.getElementById('box-o') };
     Object.values(boxes).forEach(b => b.innerHTML = '');
     let totals = { INGRESO: 0, HOGAR: 0, SUBS: 0, VARIO: 0 };
 
     db.forEach((t, i) => {
-      const row = `<div class="item">
-        <div><div style="font-size:8px;color:#aaa">${t.date}</div><b>${t.desc.substring(0,18)}</b></div>
-        <div style="display:flex;align-items:center"><b style="color:${t.amount>=0?'#4ade80':'#555'}">$${Math.abs(t.amount).toFixed(2)}</b><span onclick="db.splice(${i},1);updateUI()" class="btn-del">×</span></div>
+      const row = `<div class="item-row">
+        <div><span class="item-date">${t.date}</span><b>${t.desc.substring(0,20)}</b></div>
+        <div><b>$${Math.abs(t.amount).toFixed(2)}</b><button onclick="deleteItem(${i})" class="btn-del">×</button></div>
       </div>`;
-      if(boxes[t.type]) { 
-        boxes[t.type].innerHTML += row; 
-        totals[t.type] += Math.abs(t.amount); 
+      if(boxes[t.type]) {
+        boxes[t.type].innerHTML += row;
+        totals[t.type] += Math.abs(t.amount);
       }
     });
 
-    document.getElementById('val-in').innerText = `$${totals.INGRESO.toFixed(2)}`;
-    document.getElementById('val-h').innerText = `$${totals.HOGAR.toFixed(2)}`;
-    document.getElementById('val-s').innerText = `$${totals.SUBS.toFixed(2)}`;
-    document.getElementById('val-o').innerText = `$${totals.VARIO.toFixed(2)}`;
-
-    // Límites
-    document.getElementById('card-s').style.backgroundColor = totals.SUBS > document.getElementById('limS').value ? "#fff5f5" : "white";
-    document.getElementById('card-h').style.backgroundColor = totals.HOGAR > document.getElementById('limH').value ? "#fff5f5" : "white";
-
-    // Chart
-    const ctx = document.getElementById('chartCanvas').getContext('2d');
-    if (chart) chart.destroy();
-    chart = new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        labels: ['Ingreso', 'Hogar', 'Subs', 'Otros'],
-        datasets: [{ 
-          data: [totals.INGRESO || 0.1, totals.HOGAR, totals.SUBS, totals.VARIO], 
-          backgroundColor: ['#c1e1c1','#bcd4e6','#fbc4ab','#ffb3ba'], 
-          borderWidth: 0 
-        }]
-      },
-      options: { cutout: '80%', plugins: { legend: { display: false } } }
-    });
-
-    const spent = totals.HOGAR + totals.SUBS + totals.VARIO;
-    const per = totals.INGRESO > 0 ? Math.round(((totals.INGRESO - spent) / totals.INGRESO) * 100) : 0;
-    const pText = document.getElementById('percentText');
-    pText.innerText = per + "%";
-    pText.style.color = per < 0 ? 'red' : '#4ade80';
-
-    localStorage.setItem('wallet_final_v1', JSON.stringify(db));
+    document.getElementById('ti').innerText = `$${totals.INGRESO.toFixed(2)}`;
+    document.getElementById('th').innerText = `$${totals.HOGAR.toFixed(2)}`;
+    document.getElementById('ts').innerText = `$${totals.SUBS.toFixed(2)}`;
+    document.getElementById('te').innerText = `$${totals.VARIO.toFixed(2)}`;
+    localStorage.setItem('wallet_blindada_v1', JSON.stringify(db));
   }
 
-  window.onload = () => { setTimeout(updateUI, 500); };
+  function deleteItem(i) { db.splice(i, 1); render(); }
+  
+  render();
 </script>
 </body>
 </html>

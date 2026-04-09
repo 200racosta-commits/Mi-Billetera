@@ -2,90 +2,85 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Billetera Guardian Intelligence</title>
+  <title>Billetera Guardian PRO</title>
   <script src="https://jsdelivr.net"></script>
-  <script src="https://cloudflare.com"></script>
   <style>
-    :root { --bg: #fdfbfb; --card: #ffffff; --income: #c1e1c1; --house: #bcd4e6; --subs: #fbc4ab; --expense: #ffb3ba; --text: #555; --accent: #b19cd9; --alert: #ff6b6b; }
-    body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
-    .container { max-width: 1200px; margin: 0 auto; }
-    .dashboard-top { display: grid; grid-template-columns: 1fr 350px; gap: 20px; margin-bottom: 20px; }
-    .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
-    .stat-card { background: var(--card); padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); text-align: center; border-bottom: 4px solid #ddd; }
-    .chart-box { background: var(--card); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); position: relative; display: flex; align-items: center; justify-content: center; min-height: 250px; }
-    .config-panel { background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: flex; justify-content: center; gap: 20px; border: 1px solid #eee; font-size: 13px; }
-    .config-panel input { width: 80px; padding: 5px; border-radius: 5px; border: 1px solid #ddd; font-weight: bold; }
-    .manual-entry { background: var(--card); padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px dashed var(--accent); display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; justify-content: center; }
-    .manual-entry input, .manual-entry select { padding: 8px; border: 1px solid #eee; border-radius: 8px; outline: none; }
-    .btn-add { background: var(--accent); color: white; border: none; padding: 10px 25px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+    :root { --bg: #fdfbfb; --card: #ffffff; --income: #c1e1c1; --house: #bcd4e6; --subs: #fbc4ab; --expense: #ffb3ba; --text: #555; --accent: #b19cd9; }
+    body { font-family: sans-serif; background: var(--bg); color: var(--text); padding: 15px; margin:0; }
+    .container { max-width: 1000px; margin: 0 auto; }
+    .dashboard { display: grid; grid-template-columns: 1fr 300px; gap: 20px; margin-bottom: 20px; }
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .stat-card { background: var(--card); padding: 15px; border-radius: 12px; text-align: center; border-bottom: 4px solid #ddd; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    .chart-box { background: var(--card); border-radius: 12px; padding: 15px; display: flex; align-items: center; justify-content: center; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    .config { background: #fff; padding: 10px; border-radius: 10px; margin-bottom: 20px; text-align: center; border: 1px solid #eee; font-size: 12px; }
+    .config input { width: 60px; padding: 4px; border: 1px solid #ddd; border-radius: 4px; }
     .main-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
-    .column { background: var(--card); border-radius: 15px; overflow: hidden; height: 450px; display: flex; flex-direction: column; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 2px solid transparent; }
-    .col-header { padding: 10px; font-weight: bold; text-align: center; color: white; text-transform: uppercase; font-size: 11px; }
-    .scroll-area { overflow-y: auto; flex-grow: 1; padding: 5px; }
-    .item-row { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #fafafa; font-size: 12px; align-items: center; }
-    .delete-x { color: #ccc; cursor: pointer; margin-left: 10px; font-weight: bold; font-size: 14px; }
-    @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } .dashboard-top { grid-template-columns: 1fr; } }
+    .column { background: var(--card); border-radius: 12px; height: 450px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    .col-header { padding: 10px; text-align: center; color: white; font-weight: bold; font-size: 11px; letter-spacing: 1px; }
+    .scroll { overflow-y: auto; flex-grow: 1; padding: 5px; }
+    .item { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #f9f9f9; font-size: 11px; align-items: center; }
+    .btn-del { color: #ddd; cursor: pointer; font-weight: bold; margin-left: 5px; font-size: 14px; }
+    @media (max-width: 800px) { .main-grid { grid-template-columns: 1fr 1fr; } .dashboard { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h2 style="text-align:center; color: var(--accent); font-weight: 800; margin-bottom: 20px;">Billetera Guardian Intelligence PRO</h2>
+  <h2 style="text-align:center; color: var(--accent); font-weight: 800;">Billetera Guardian PRO</h2>
 
-  <!-- Límites -->
-  <div class="config-panel">
-    <div>Límite Subs: $ <input type="number" id="limit-s" value="100" oninput="updateUI()"></div>
-    <div>Límite Hogar: $ <input type="number" id="limit-h" value="1500" oninput="updateUI()"></div>
+  <div class="config">
+    Límite Suscripciones: $<input type="number" id="limS" value="100" oninput="updateUI()"> | 
+    Límite Hogar: $<input type="number" id="limH" value="1500" oninput="updateUI()">
   </div>
 
-  <div class="dashboard-top">
-    <div class="stats-grid">
-      <div class="stat-card" style="border-color: var(--income)"><div>Ingresos</div><div id="ti" class="stat-val">$0.00</div></div>
-      <div class="stat-card" style="border-color: var(--house)"><div>Hogar</div><div id="th" class="stat-val">$0.00</div></div>
-      <div class="stat-card" style="border-color: var(--subs)"><div>Suscripciones</div><div id="ts" class="stat-val">$0.00</div></div>
-      <div class="stat-card" style="border-color: var(--expense)"><div>Otros</div><div id="te" class="stat-val">$0.00</div></div>
+  <div class="dashboard">
+    <div class="stat-grid">
+      <div class="stat-card" style="border-color: var(--income)">Ingresos<div id="val-in" style="font-weight:bold; font-size: 20px;">$0.00</div></div>
+      <div class="stat-card" id="card-h" style="border-color: var(--house)">Hogar<div id="val-h" style="font-weight:bold; font-size: 20px;">$0.00</div></div>
+      <div class="stat-card" id="card-s" style="border-color: var(--subs)">Subs<div id="val-s" style="font-weight:bold; font-size: 20px;">$0.00</div></div>
+      <div class="stat-card" style="border-color: var(--expense)">Otros<div id="val-o" style="font-weight:bold; font-size: 20px;">$0.00</div></div>
     </div>
     <div class="chart-box">
-      <canvas id="myChart"></canvas>
-      <div id="chart-percent" style="position:absolute; font-weight:800; font-size:28px; color:#555;">0%</div>
+      <canvas id="chartCanvas" width="180" height="180"></canvas>
+      <div id="percentText" style="position:absolute; font-weight:900; font-size:24px;">0%</div>
     </div>
   </div>
 
-  <div class="manual-entry">
-    <input type="text" id="m-desc" placeholder="Descripción">
-    <input type="number" id="m-amt" placeholder="Monto">
-    <select id="m-type">
+  <div style="text-align:center; margin-bottom: 20px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+    <input type="text" id="m-desc" placeholder="Descripción" style="padding:8px; border:1px solid #ddd; border-radius:5px;">
+    <input type="number" id="m-amt" placeholder="Monto" style="padding:8px; width:80px; border:1px solid #ddd; border-radius:5px;">
+    <select id="m-type" style="padding:8px; border:1px solid #ddd; border-radius:5px;">
       <option value="INGRESO">💰 Ingreso</option>
       <option value="HOGAR">🏠 Hogar</option>
-      <option value="SUBS">📺 Suscripción</option>
+      <option value="SUBS">📺 Subs</option>
       <option value="VARIO">🛍️ Otros</option>
     </select>
-    <button class="btn-add" onclick="addManual()">Añadir</button>
+    <button onclick="addManual()" style="padding:8px 20px; background:var(--accent); color:white; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">+ Añadir</button>
   </div>
 
-  <div style="text-align:center; margin-bottom: 25px;">
-    <label style="background:var(--accent); color:white; padding: 12px 35px; border-radius: 30px; font-weight:bold; cursor:pointer; display:inline-block;">
-      ➕ SUBIR EXCEL O CSV <input type="file" id="fIn" style="display:none">
+  <div style="text-align:center; margin-bottom: 30px;">
+    <label style="background:var(--accent); color:white; padding: 12px 35px; border-radius: 25px; cursor:pointer; font-weight:bold; box-shadow: 0 4px 10px rgba(177, 156, 217, 0.3);">
+      📥 SUBIR ARCHIVO CHASE <input type="file" id="fileInput" accept=".csv" style="display:none">
     </label>
-    <button onclick="exportCSV()" style="background:none; border: 1px solid #ccc; padding: 10px 20px; border-radius: 20px; color:#777; cursor:pointer; margin-left:15px; font-size:11px;">📥 Guardar Copia</button>
-    <button onclick="if(confirm('¿Borrar todo?')){localStorage.clear(); location.reload();}" style="background:none; border:none; color:#bbb; cursor:pointer; margin-left:10px; font-size:11px;">Reset</button>
+    <button onclick="localStorage.clear(); location.reload();" style="margin-left:15px; background:none; border:none; color:#bbb; cursor:pointer; font-size:11px;">Reiniciar Todo</button>
   </div>
 
   <div class="main-grid">
-    <div class="column" id="col-in"><div class="col-header" style="background:var(--income)">💰 Ingresos</div><div class="scroll-area" id="box-in"></div></div>
-    <div class="column" id="col-house"><div class="col-header" style="background:var(--house)">🏠 Hogar</div><div class="scroll-area" id="box-house"></div></div>
-    <div class="column" id="col-subs"><div class="col-header" style="background:var(--subs)">📺 Suscripciones</div><div class="scroll-area" id="box-subs"></div></div>
-    <div class="column" id="col-out"><div class="col-header" style="background:var(--expense)">🛍️ Otros</div><div class="scroll-area" id="box-out"></div></div>
+    <div class="column"><div class="col-header" style="background:var(--income)">💰 INGRESOS</div><div class="scroll" id="box-in"></div></div>
+    <div class="column"><div class="col-header" style="background:var(--house)">🏠 HOGAR</div><div class="scroll" id="box-h"></div></div>
+    <div class="column"><div class="col-header" style="background:var(--subs)">📺 SUBS</div><div class="scroll" id="box-s"></div></div>
+    <div class="column"><div class="col-header" style="background:var(--expense)">🛍️ OTROS</div><div class="scroll" id="box-o"></div></div>
   </div>
 </div>
 
 <script>
-  let db = JSON.parse(localStorage.getItem('wallet_v_stable')) || [];
-  let myChart = null;
+  let db = JSON.parse(localStorage.getItem('wallet_final_v1')) || [];
+  let chart = null;
 
   function addManual() {
-    const d = document.getElementById('m-desc').value, a = parseFloat(document.getElementById('m-amt').value), t = document.getElementById('m-type').value;
+    const d = document.getElementById('m-desc').value;
+    const a = parseFloat(document.getElementById('m-amt').value);
+    const t = document.getElementById('m-type').value;
     if(d && !isNaN(a)) {
       db.push({ date: new Date().toLocaleDateString(), desc: d, amount: t === "INGRESO" ? Math.abs(a) : -Math.abs(a), type: t });
       updateUI();
@@ -93,87 +88,83 @@
     }
   }
 
-  function exportCSV() {
-    if (db.length === 0) return alert("No hay datos.");
-    let csv = "data:text/csv;charset=utf-8,Fecha,Descripcion,Monto,Tipo\n";
-    db.forEach(t => csv += `${t.date},"${t.desc}",${t.amount},${t.type}\n`);
-    const link = document.createElement("a"); link.href = encodeURI(csv);
-    link.download = `Respaldo_${new Date().toLocaleDateString()}.csv`; link.click();
-  }
-
-  document.getElementById('fIn').addEventListener('change', function(e) {
+  document.getElementById('fileInput').addEventListener('change', function(e) {
     const reader = new FileReader();
     reader.onload = function(evt) {
-      try {
-        const data = new Uint8Array(evt.target.result);
-        const workbook = XLSX.read(data, {type: 'array'});
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json(sheet);
-        rows.forEach(row => {
-          const keys = Object.keys(row);
-          const iD = keys.find(k => k.toLowerCase().includes('date') || k.toLowerCase().includes('fecha'));
-          const iS = keys.find(k => k.toLowerCase().includes('desc') || k.toLowerCase().includes('name'));
-          const iA = keys.find(k => k.toLowerCase().includes('amount') || k.toLowerCase().includes('monto'));
-          let a = parseFloat(String(row[iA] || 0).replace(/[$\s,]/g, ''));
-          if(!isNaN(a) && a !== 0) {
+      const lines = evt.target.result.split('\n');
+      // Chase headers: Details,Posting Date,Description,Amount,Type...
+      for (let i = 1; i < lines.length; i++) {
+        const c = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+        if (c.length > 4) {
+          let a = parseFloat(c[3]?.replace(/[$\s"]/g, '').replace(/,/g, '')); // Columna 3 es Amount
+          if (!isNaN(a)) {
+            let d = c[2]?.replace(/"/g, '') || 'Detalle'; // Columna 2 es Description
             let type = a >= 0 ? "INGRESO" : "VARIO";
-            let d = row[iS] || 'Transacción';
-            const lowD = String(d).toLowerCase();
+            const lowD = d.toLowerCase();
             const subs = ['netflix','spotify','disney','apple','icloud','amazon','gym','canva','hbo','klarna','affirm','afterpay','sc'];
             if(subs.some(kw => lowD.includes(kw))) type = "SUBS";
-            else if (lowD.includes('rent') || lowD.includes('peco') || lowD.includes('insurance') || lowD.includes('utility')) type = "HOGAR";
-            db.push({ date: row[iD] || 'S/F', desc: d, amount: a, type: type });
+            else if (lowD.includes('rent') || lowD.includes('peco') || lowD.includes('insurance')) type = "HOGAR";
+            db.push({ date: c[1] || 'S/F', desc: d, amount: a, type: type }); // Columna 1 es Posting Date
           }
-        });
-        updateUI();
-        alert("¡Cargado!");
-      } catch (err) { alert("Error al leer archivo."); }
+        }
+      }
+      updateUI();
+      alert("¡Archivo de Chase cargado!");
     };
-    reader.readAsArrayBuffer(e.target.files[0]);
+    reader.readAsText(e.target.files);
   });
 
   function updateUI() {
-    const boxes = { INGRESO: document.getElementById('box-in'), HOGAR: document.getElementById('box-house'), SUBS: document.getElementById('box-subs'), VARIO: document.getElementById('box-out') };
+    const boxes = { INGRESO: document.getElementById('box-in'), HOGAR: document.getElementById('box-h'), SUBS: document.getElementById('box-s'), VARIO: document.getElementById('box-o') };
     Object.values(boxes).forEach(b => b.innerHTML = '');
     let totals = { INGRESO: 0, HOGAR: 0, SUBS: 0, VARIO: 0 };
 
     db.forEach((t, i) => {
-      const row = `<div class="item-row">
-        <div><span style="font-size:9px;color:#aaa;display:block">${t.date}</span><b>${String(t.desc).substring(0,18)}</b></div>
-        <div style="display:flex;align-items:center"><b style="color:${t.amount>=0?'#4ade80':'#555'}">$${Math.abs(t.amount).toFixed(2)}</b><span onclick="db.splice(${i},1);updateUI()" class="delete-x">×</span></div>
+      const row = `<div class="item">
+        <div><div style="font-size:8px;color:#aaa">${t.date}</div><b>${t.desc.substring(0,18)}</b></div>
+        <div style="display:flex;align-items:center"><b style="color:${t.amount>=0?'#4ade80':'#555'}">$${Math.abs(t.amount).toFixed(2)}</b><span onclick="db.splice(${i},1);updateUI()" class="btn-del">×</span></div>
       </div>`;
-      if(boxes[t.type]) { boxes[t.type].innerHTML += row; totals[t.type] += Math.abs(t.amount); }
+      if(boxes[t.type]) { 
+        boxes[t.type].innerHTML += row; 
+        totals[t.type] += Math.abs(t.amount); 
+      }
     });
 
-    document.getElementById('ti').innerText = `$${totals.INGRESO.toFixed(2)}`;
-    document.getElementById('th').innerText = `$${totals.HOGAR.toFixed(2)}`;
-    document.getElementById('ts').innerText = `$${totals.SUBS.toFixed(2)}`;
-    document.getElementById('te').innerText = `$${totals.VARIO.toFixed(2)}`;
+    document.getElementById('val-in').innerText = `$${totals.INGRESO.toFixed(2)}`;
+    document.getElementById('val-h').innerText = `$${totals.HOGAR.toFixed(2)}`;
+    document.getElementById('val-s').innerText = `$${totals.SUBS.toFixed(2)}`;
+    document.getElementById('val-o').innerText = `$${totals.VARIO.toFixed(2)}`;
 
-    // Alertas de Límites
-    document.getElementById('col-subs').style.borderColor = totals.SUBS > document.getElementById('limit-s').value ? "var(--alert)" : "transparent";
-    document.getElementById('col-house').style.borderColor = totals.HOGAR > document.getElementById('limit-h').value ? "var(--alert)" : "transparent";
+    // Límites
+    document.getElementById('card-s').style.backgroundColor = totals.SUBS > document.getElementById('limS').value ? "#fff5f5" : "white";
+    document.getElementById('card-h').style.backgroundColor = totals.HOGAR > document.getElementById('limH').value ? "#fff5f5" : "white";
 
-    // Gráfico
-    if (window.Chart) {
-      const ctx = document.getElementById('myChart').getContext('2d');
-      if (myChart) myChart.destroy();
-      myChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: { labels: ['Ingresos', 'Hogar', 'Subs', 'Varios'], datasets: [{ data: [totals.INGRESO || 0.1, totals.HOGAR, totals.SUBS, totals.VARIO], backgroundColor: ['#c1e1c1', '#bcd4e6', '#fbc4ab', '#ffb3ba'], borderWidth: 0 }] },
-        options: { cutout: '80%', plugins: { legend: { display: false } } }
-      });
-    }
+    // Chart
+    const ctx = document.getElementById('chartCanvas').getContext('2d');
+    if (chart) chart.destroy();
+    chart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Ingreso', 'Hogar', 'Subs', 'Otros'],
+        datasets: [{ 
+          data: [totals.INGRESO || 0.1, totals.HOGAR, totals.SUBS, totals.VARIO], 
+          backgroundColor: ['#c1e1c1','#bcd4e6','#fbc4ab','#ffb3ba'], 
+          borderWidth: 0 
+        }]
+      },
+      options: { cutout: '80%', plugins: { legend: { display: false } } }
+    });
 
-    const totalGasto = totals.HOGAR + totals.SUBS + totals.VARIO;
-    const per = totals.INGRESO > 0 ? Math.round(((totals.INGRESO - totalGasto) / totals.INGRESO) * 100) : 0;
-    document.getElementById('chart-percent').innerText = per + "%";
-    document.getElementById('chart-percent').style.color = per < 0 ? 'var(--alert)' : '#4ade80';
+    const spent = totals.HOGAR + totals.SUBS + totals.VARIO;
+    const per = totals.INGRESO > 0 ? Math.round(((totals.INGRESO - spent) / totals.INGRESO) * 100) : 0;
+    const pText = document.getElementById('percentText');
+    pText.innerText = per + "%";
+    pText.style.color = per < 0 ? 'red' : '#4ade80';
 
-    localStorage.setItem('wallet_v_stable', JSON.stringify(db));
+    localStorage.setItem('wallet_final_v1', JSON.stringify(db));
   }
 
-  window.onload = () => setTimeout(updateUI, 500);
+  window.onload = () => { setTimeout(updateUI, 500); };
 </script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Billetera Digital V2</title>
+  <title>Billetera Guardian PRO - Memoria Inteligente</title>
   <style>
     :root { --bg: #fdfbfb; --card: #ffffff; --income: #c1e1c1; --house: #bcd4e6; --subs: #fbc4ab; --expense: #ffb3ba; --text: #4a4a4a; --accent: #b19cd9; --alert: #e63946; }
     body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 15px; margin: 0; }
@@ -16,13 +16,12 @@
     .stat-card { background: var(--card); padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-bottom: 5px solid #ddd; transition: 0.3s; }
     .stat-val { font-size: 24px; font-weight: bold; margin-top: 5px; }
 
-    /* Estilo de Alerta Crítica */
-    .over-limit { border-color: var(--alert) !important; background: #fff0f0 !important; transform: scale(1.02); }
-    .over-limit .stat-val { color: var(--alert); animation: pulse 2s infinite; }
-    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+    .over-limit { border-color: var(--alert) !important; background: #fff0f0 !important; transform: scale(1.01); }
+    .over-limit .stat-val { color: var(--alert); }
 
     .actions-panel { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 25px; text-align: center; }
     input, select { padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin: 5px; outline: none; }
+    .btn-main { background: var(--accent); color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; }
     .btn-upload { background: var(--accent); color: white; padding: 12px 30px; border-radius: 30px; font-weight: bold; cursor: pointer; display: inline-block; margin-top: 10px; }
 
     .main-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
@@ -30,9 +29,9 @@
     .col-header { padding: 12px; text-align: center; color: white; font-weight: bold; font-size: 11px; text-transform: uppercase; }
     .scroll-area { overflow-y: auto; flex-grow: 1; padding: 10px; }
     
-    .item-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f5f5f5; font-size: 12px; align-items: center; }
-    .btn-del { color: #ccc; cursor: pointer; border: none; background: none; font-size: 16px; margin-left: 5px; }
-    .btn-move { color: var(--accent); cursor: pointer; border: none; background: none; font-size: 14px; }
+    .item-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f5f5f5; font-size: 11px; align-items: center; }
+    .btn-del { color: #ccc; cursor: pointer; border: none; background: none; font-size: 16px; }
+    .btn-move { color: #3498db; cursor: pointer; border: none; background: none; font-size: 14px; margin-right: 5px; }
 
     @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
   </style>
@@ -66,10 +65,13 @@
       <option value="SUBS">📺 Suscripción</option>
       <option value="VARIO">🛍️ Otros</option>
     </select>
-    <button onclick="addManual()" style="padding:10px 20px; background:var(--accent); color:white; border:none; border-radius:8px; cursor:pointer;">+ Añadir</button>
+    <button onclick="addManual()" class="btn-main">+ Añadir</button>
     <br>
     <label class="btn-upload">📥 CARGAR CSV <input type="file" id="fIn" accept=".csv" style="display:none"></label>
-    <button onclick="if(confirm('¿Borrar todo?')){localStorage.clear(); location.reload();}" style="background:none; border:none; color:#ccc; cursor:pointer; font-size:11px; margin-left:20px;">Reiniciar Mes</button>
+    <div style="margin-top: 15px;">
+        <button onclick="descargarJSON()" style="background:#eee; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; font-size:11px;">💾 Guardar Respaldo</button>
+        <button onclick="if(confirm('¿Borrar todo?')){localStorage.clear(); location.reload();}" style="background:none; border:none; color:#ccc; cursor:pointer; font-size:11px; margin-left:15px;">Reiniciar Mes</button>
+    </div>
   </div>
 
   <div class="main-grid">
@@ -82,24 +84,32 @@
 
 <script>
   let db = JSON.parse(localStorage.getItem('wallet_universal_v1')) || [];
+  let memoriaCats = JSON.parse(localStorage.getItem('memoria_cats')) || {};
 
   function addManual() {
     const d = document.getElementById('m-desc').value, a = parseFloat(document.getElementById('m-amt').value), t = document.getElementById('m-type').value;
     if(d && !isNaN(a)) {
       db.push({ date: new Date().toLocaleDateString(), desc: d, amount: t === "INGRESO" ? Math.abs(a) : -Math.abs(a), type: t });
+      aprender(d, t);
       render();
       document.getElementById('m-desc').value = ''; document.getElementById('m-amt').value = '';
     }
+  }
+
+  function aprender(nombre, cat) {
+    memoriaCats[nombre.toLowerCase().trim()] = cat;
+    localStorage.setItem('memoria_cats', JSON.stringify(memoriaCats));
   }
 
   document.getElementById('fIn').addEventListener('change', function(e) {
     const reader = new FileReader();
     reader.onload = function(evt) {
       const lines = evt.target.result.split('\n');
+      if (lines.length < 2) return;
       const headers = lines[0].toLowerCase().split(',').map(h => h.trim().replace(/"/g, ''));
       const iDate = headers.findIndex(h => h.includes('date') || h.includes('fecha'));
-      const iDesc = headers.findIndex(h => h.includes('desc') || h.includes('name') || h.includes('memo') || h.includes('concepto'));
-      const iAmt = headers.findIndex(h => h.includes('amount') || h.includes('monto') || h.includes('gross') || h.includes('total') || h.includes('importe'));
+      const iDesc = headers.findIndex(h => h.includes('desc') || h.includes('name') || h.includes('memo'));
+      const iAmt = headers.findIndex(h => h.includes('amount') || h.includes('monto') || h.includes('total'));
 
       let count = 0;
       for (let i = 1; i < lines.length; i++) {
@@ -107,20 +117,17 @@
         if (row.length > 1 && iAmt !== -1) {
           let rawAmt = parseFloat(row[iAmt]?.replace(/[$\s"]/g, '').replace(/,/g, ''));
           if (!isNaN(rawAmt)) {
-            let desc = row[iDesc]?.replace(/"/g, '') || 'Banco';
-            let type = rawAmt >= 0 ? "INGRESO" : "VARIO";
-            const dL = desc.toLowerCase();
-
-            // CEREBRO REFINADO
-            const subsKeywords = ['netflix','spotify','disney','apple','icloud','amazon','gym','canva','hbo','klarna','affirm','afterpay','dave','membership'];
-            const houseKeywords = ['rent','peco','insurance','utility','t-mobile','metro','zelle renta','lease','electric','water','gas'];
-
-            if(subsKeywords.some(kw => dL.includes(kw)) && !dL.includes('eats')) {
-                type = "SUBS";
-            } else if (houseKeywords.some(kw => dL.includes(kw))) {
-                type = "HOGAR";
-            }
+            let desc = row[iDesc]?.replace(/"/g, '') || 'Transacción';
+            let dL = desc.toLowerCase().trim();
             
+            // Lógica de Memoria vs Automática
+            let type = memoriaCats[dL] || (rawAmt >= 0 ? "INGRESO" : "VARIO");
+            if (!memoriaCats[dL]) {
+                const subsK = ['netflix','spotify','apple','icloud','disney','amazon','klarna','affirm','dave','membership','canva'];
+                const houseK = ['rent','peco','insurance','utility','t-mobile','metro','zelle','lease','electric','water','gas','att'];
+                if(subsK.some(kw => dL.includes(kw)) && !dL.includes('eats')) type = "SUBS";
+                else if (houseK.some(kw => dL.includes(kw))) type = "HOGAR";
+            }
             db.push({ date: row[iDate]?.replace(/"/g, '') || 'S/F', desc: desc, amount: rawAmt, type: type });
             count++;
           }
@@ -149,40 +156,53 @@
           <div style="flex:1"><b>${it.desc}</b><br><small>${it.date}</small></div>
           <div style="text-align:right">
             $${Math.abs(it.amount).toFixed(2)}<br>
-            <span class="btn-move" onclick="move(${idx})" title="Cambiar categoría">🔄</span>
+            <span class="btn-move" onclick="cambiarCat(${idx})">🔄</span>
             <span class="btn-del" onclick="del(${idx})">×</span>
           </div>`;
         boxes[it.type].appendChild(row);
       }
     });
 
-    // Actualizar números
-    ['ti','th','ts','te'].forEach((id, i) => {
-      const val = Object.values(totals)[i];
-      document.getElementById(id).innerText = `$${val.toFixed(2)}`;
-    });
+    // Actualizar Totales
+    document.getElementById('ti').innerText = `$${totals.INGRESO.toFixed(2)}`;
+    document.getElementById('th').innerText = `$${totals.HOGAR.toFixed(2)}`;
+    document.getElementById('ts').innerText = `$${totals.SUBS.toFixed(2)}`;
+    document.getElementById('te').innerText = `$${totals.VARIO.toFixed(2)}`;
 
-    // Lógica de Alertas Visuales
-    const lH = parseFloat(document.getElementById('limH').value) || 0;
-    const lS = parseFloat(document.getElementById('limS').value) || 0;
+    // Alertas
+    const lH = parseFloat(document.getElementById('limH').value) || 0, lS = parseFloat(document.getElementById('limS').value) || 0;
+    const alertH = totals.HOGAR > lH;
+    const alertS = totals.SUBS > lS;
 
-    const checkLimit = (total, limit, cardId, colId, warnId) => {
-      const isOver = total > limit && limit > 0;
-      document.getElementById(cardId).classList.toggle('over-limit', isOver);
-      document.getElementById(colId).classList.toggle('over-limit', isOver);
-      document.getElementById(warnId).innerText = isOver ? "⚠️ EXCEDIDO" : "";
-      document.getElementById(warnId).style.color = "red";
-    };
+    document.getElementById('card-h').classList.toggle('over-limit', alertH);
+    document.getElementById('col-h').classList.toggle('over-limit', alertH);
+    document.getElementById('warnH').innerText = alertH ? "⚠️ EXCEDIDO" : "";
+    document.getElementById('warnH').style.color = "red";
 
-    checkLimit(totals.HOGAR, lH, 'card-h', 'col-h', 'warnH');
-    checkLimit(totals.SUBS, lS, 'card-s', 'col-s', 'warnS');
+    document.getElementById('card-s').classList.toggle('over-limit', alertS);
+    document.getElementById('col-s').classList.toggle('over-limit', alertS);
+    document.getElementById('warnS').innerText = alertS ? "⚠️ EXCEDIDO" : "";
+    document.getElementById('warnS').style.color = "red";
   }
 
-  function move(idx) {
-    const types = ["INGRESO", "HOGAR", "SUBS", "VARIO"];
-    let current = types.indexOf(db[idx].type);
-    db[idx].type = types[(current + 1) % types.length];
-    render();
+  function cambiarCat(idx) {
+    const opts = ["INGRESO", "HOGAR", "SUBS", "VARIO"];
+    const r = prompt("Mover a:\n1. Ingresos\n2. Hogar\n3. Subscripciones\n4. Otros", "1");
+    if(r >= 1 && r <= 4) {
+        db[idx].type = opts[r-1];
+        aprender(db[idx].desc, opts[r-1]); // Aquí el cerebro aprende
+        render();
+    }
+  }
+
+  function descargarJSON() {
+    const data = JSON.stringify(db, null, 2);
+    const blob = new Blob([data], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Billetera_${new Date().getMonth()+1}.json`;
+    a.click();
   }
 
   function del(i) { if(confirm('¿Eliminar?')) { db.splice(i, 1); render(); } }

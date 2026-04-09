@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Billetera Guardian PRO</title>
-  <!-- Cargamos las librerías primero -->
+  <title>Billetera Guardian Intelligence PRO</title>
   <script src="https://jsdelivr.net"></script>
   <script src="https://cloudflare.com"></script>
   <style>
@@ -15,23 +14,23 @@
     .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
     .stat-card { background: var(--card); padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); text-align: center; border-bottom: 4px solid #ddd; }
     .stat-val { font-size: 20px; font-weight: bold; }
-    .chart-box { background: var(--card); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); position: relative; display: flex; align-items: center; justify-content: center; min-height: 250px; }
+    .chart-box { background: var(--card); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); position: relative; display: flex; align-items: center; justify-content: center; min-height: 280px; }
     .manual-entry { background: var(--card); padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px dashed var(--accent); display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; justify-content: center; }
     .manual-entry input, .manual-entry select { padding: 8px; border: 1px solid #eee; border-radius: 8px; outline: none; }
-    .btn-add { background: var(--accent); color: white; border: none; padding: 8px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    .btn-add { background: var(--accent); color: white; border: none; padding: 10px 25px; border-radius: 10px; font-weight: bold; cursor: pointer; }
     .main-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
     .column { background: var(--card); border-radius: 15px; overflow: hidden; height: 450px; display: flex; flex-direction: column; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
     .col-header { padding: 10px; font-weight: bold; text-align: center; color: white; text-transform: uppercase; font-size: 11px; }
     .scroll-area { overflow-y: auto; flex-grow: 1; padding: 5px; }
     .item-row { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #fafafa; font-size: 12px; align-items: center; }
-    .delete-x { color: #ccc; cursor: pointer; margin-left: 10px; font-weight: bold; }
+    .delete-x { color: #ccc; cursor: pointer; margin-left: 10px; font-weight: bold; font-size: 14px; }
     @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } .dashboard-top { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h2 style="text-align:center; color: var(--accent); font-weight: 800; margin-bottom: 20px;">Billetera Guardian Intelligence PRO</h2>
+  <h2 style="text-align:center; color: var(--accent); font-weight: 800; margin-bottom: 20px;">Billetera Guardian PRO</h2>
 
   <div class="dashboard-top">
     <div class="stats-grid">
@@ -62,7 +61,8 @@
     <label style="background:var(--accent); color:white; padding: 12px 35px; border-radius: 30px; font-weight:bold; cursor:pointer; display:inline-block;">
       ➕ SUBIR EXCEL O CSV <input type="file" id="fIn" style="display:none">
     </label>
-    <button onclick="localStorage.clear(); location.reload();" style="background:none; border:none; color:#bbb; cursor:pointer; margin-left:15px; font-size:11px;">Reset Todo</button>
+    <button onclick="exportCSV()" style="background:none; border: 1px solid #ccc; padding: 10px 20px; border-radius: 20px; color:#777; cursor:pointer; margin-left:15px; font-size:11px;">📥 Guardar Copia</button>
+    <button onclick="if(confirm('¿Borrar todo?')){localStorage.clear(); location.reload();}" style="background:none; border:none; color:#bbb; cursor:pointer; margin-left:10px; font-size:11px;">Reset</button>
   </div>
 
   <div class="main-grid">
@@ -74,7 +74,7 @@
 </div>
 
 <script>
-  let db = JSON.parse(localStorage.getItem('wallet_prod_v1')) || [];
+  let db = JSON.parse(localStorage.getItem('wallet_final_fix')) || [];
   let myChart = null;
 
   function addManual() {
@@ -86,15 +86,24 @@
     }
   }
 
+  function exportCSV() {
+    if (db.length === 0) return alert("No hay datos para guardar.");
+    let csv = "data:text/csv;charset=utf-8,Fecha,Descripcion,Monto,Tipo\n";
+    db.forEach(t => csv += `${t.date},"${t.desc}",${t.amount},${t.type}\n`);
+    const link = document.createElement("a");
+    link.href = encodeURI(csv);
+    link.download = `Respaldo_${new Date().toLocaleDateString()}.csv`;
+    link.click();
+  }
+
   document.getElementById('fIn').addEventListener('change', function(e) {
-    const file = e.target.files[0];
     const reader = new FileReader();
     reader.onload = function(evt) {
       try {
         const data = new Uint8Array(evt.target.result);
         const workbook = XLSX.read(data, {type: 'array'});
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json(sheet);
+        const sheet = workbook.Sheets[workbook.SheetNames];
+        const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
         
         rows.forEach(row => {
           const keys = Object.keys(row);
@@ -102,22 +111,24 @@
           const iS = keys.find(k => k.toLowerCase().includes('desc') || k.toLowerCase().includes('name'));
           const iA = keys.find(k => k.toLowerCase().includes('amount') || k.toLowerCase().includes('monto'));
 
-          let a = parseFloat(String(row[iA] || 0).replace(/[$\s,]/g, ''));
-          if(!isNaN(a) && a !== 0) {
-            let type = a >= 0 ? "INGRESO" : "VARIO";
-            let d = row[iS] || 'Transacción';
-            const lowD = String(d).toLowerCase();
-            const subs = ['netflix','spotify','disney','apple','icloud','amazon','gym','canva','hbo','klarna','affirm','afterpay'];
-            if(subs.some(kw => lowD.includes(kw))) type = "SUBS";
-            else if (lowD.includes('rent') || lowD.includes('peco') || lowD.includes('insurance')) type = "HOGAR";
-            db.push({ date: row[iD] || 'S/F', desc: d, amount: a, type: type });
+          if (iA && row[iA] !== "") {
+            let a = parseFloat(String(row[iA]).replace(/[$\s,]/g, ''));
+            if(!isNaN(a) && a !== 0) {
+              let type = a >= 0 ? "INGRESO" : "VARIO";
+              let d = row[iS] || 'Banco';
+              const lowD = String(d).toLowerCase();
+              const subs = ['netflix','spotify','disney','apple','icloud','amazon','gym','canva','hbo','klarna','affirm','afterpay'];
+              if(subs.some(kw => lowD.includes(kw))) type = "SUBS";
+              else if (lowD.includes('rent') || lowD.includes('peco') || lowD.includes('insurance')) type = "HOGAR";
+              db.push({ date: row[iD] || 'S/F', desc: d, amount: a, type: type });
+            }
           }
         });
         updateUI();
         alert("¡Archivo cargado!");
-      } catch (err) { alert("Error al leer archivo."); }
+      } catch (err) { alert("Error al leer archivo. Asegúrate de que sea el CSV de Chase."); }
     };
-    reader.readAsArrayBuffer(file);
+    reader.readAsArrayBuffer(e.target.files);
   });
 
   function updateUI() {
@@ -130,10 +141,7 @@
         <div><span style="font-size:9px;color:#aaa;display:block">${t.date}</span><b>${String(t.desc).substring(0,18)}</b></div>
         <div style="display:flex;align-items:center"><b style="color:${t.amount>=0?'#4ade80':'#555'}">$${Math.abs(t.amount).toFixed(2)}</b><span onclick="db.splice(${i},1);updateUI()" class="delete-x">×</span></div>
       </div>`;
-      if(boxes[t.type]) { 
-        boxes[t.type].innerHTML += row; 
-        totals[t.type] += Math.abs(t.amount); 
-      }
+      if(boxes[t.type]) { boxes[t.type].innerHTML += row; totals[t.type] += Math.abs(t.amount); }
     });
 
     document.getElementById('ti').innerText = `$${totals.INGRESO.toFixed(2)}`;
@@ -141,33 +149,31 @@
     document.getElementById('ts').innerText = `$${totals.SUBS.toFixed(2)}`;
     document.getElementById('te').innerText = `$${totals.VARIO.toFixed(2)}`;
 
-    // Gráfico
-    if (window.Chart) {
-      const ctx = document.getElementById('myChart').getContext('2d');
-      if (myChart) myChart.destroy();
-      myChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          datasets: [{
-            data: [totals.HOGAR || 0.1, totals.SUBS || 0.1, totals.VARIO || 0.1],
-            backgroundColor: ['#bcd4e6', '#fbc4ab', '#ffb3ba'],
-            borderWidth: 0
-          }]
-        },
-        options: { cutout: '80%', plugins: { legend: { display: false } } }
-      });
-    }
+    // DIBUJAR GRÁFICO (Corregido)
+    const ctx = document.getElementById('myChart').getContext('2d');
+    if (myChart) myChart.destroy();
+    myChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Ingresos', 'Hogar', 'Subs', 'Otros'],
+        datasets: [{
+          data: [totals.INGRESO || 0.1, totals.HOGAR || 0.1, totals.SUBS || 0.1, totals.VARIO || 0.1],
+          backgroundColor: ['#c1e1c1', '#bcd4e6', '#fbc4ab', '#ffb3ba'],
+          borderWidth: 0
+        }]
+      },
+      options: { cutout: '80%', plugins: { legend: { display: false } } }
+    });
 
     const totalGasto = totals.HOGAR + totals.SUBS + totals.VARIO;
     const per = totals.INGRESO > 0 ? Math.round(((totals.INGRESO - totalGasto) / totals.INGRESO) * 100) : 0;
     document.getElementById('chart-percent').innerText = per + "%";
     document.getElementById('chart-percent').style.color = per < 0 ? 'var(--alert)' : '#4ade80';
 
-    localStorage.setItem('wallet_prod_v1', JSON.stringify(db));
+    localStorage.setItem('wallet_final_fix', JSON.stringify(db));
   }
 
-  // Iniciar
-  window.onload = updateUI;
+  window.onload = () => { setTimeout(updateUI, 500); };
 </script>
 </body>
 </html>
